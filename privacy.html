@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — SHELVES</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Anton&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.png">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --yellow: #FFE600;
+  --red:    #FF2200;
+  --blue:   #1A1AFF;
+  --white:  #F5F0E8;
+  --black:  #0A0A0A;
+  --green:  #00FF41;
+  --orange: #FF6B00;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ── MICRO FLICKER ── */
+.flicker-overlay {
+  position: fixed; inset: 0;
+  z-index: 9999; pointer-events: none;
+  opacity: 0; background: var(--white);
+  will-change: opacity;
+  animation: microFlicker 8s linear infinite;
+}
+@keyframes microFlicker {
+  0%,5.90%,6.10%,23.90%,24.10%,47.90%,48.10%,71.90%,72.10%,89.90%,90.10%,100% { opacity: 0; }
+  6.00%  { opacity: 0.04; }
+  24.00% { opacity: 0.03; }
+  48.00% { opacity: 0.05; }
+  72.00% { opacity: 0.03; }
+  90.00% { opacity: 0.04; }
+}
+
+/* ── NOISE ── */
+.noise {
+  position: fixed; inset: 0; z-index: 998; pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px;
+  will-change: background-position;
+  animation: noiseAnim 0.5s steps(3) infinite;
+}
+@keyframes noiseAnim {
+  0%   { background-position: 0 0; }
+  33%  { background-position: 60px 90px; }
+  66%  { background-position: 110px 40px; }
+  100% { background-position: 0 0; }
+}
+
+/* ── SCANLINES ── */
+.scanlines {
+  position: fixed; inset: 0; z-index: 997; pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.022) 2px, rgba(0,0,0,0.022) 4px);
+}
+
+/* ── NAVBAR ── */
+.nav {
+  position: fixed; top: 0; left: 0; width: 100%;
+  z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 5%;
+  border-bottom: 2px solid rgba(245,240,232,0.07);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(10,10,10,0.85);
+}
+.nav-logo {
+  font-family: 'Black Ops One', cursive;
+  font-size: 1.5rem;
+  letter-spacing: 0.08em;
+  color: var(--white);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-logo span { color: var(--yellow); }
+.nav-logo:hover { color: var(--yellow); }
+.nav-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245,240,232,0.45);
+  text-decoration: none;
+  border: 1.5px solid rgba(245,240,232,0.15);
+  padding: 7px 16px;
+  transition: all 0.2s;
+}
+.nav-back:hover { color: var(--yellow); border-color: var(--yellow); }
+
+/* ── PAGE HEADER ── */
+.page-header {
+  position: relative;
+  width: 100%;
+  padding: 140px 5% 70px;
+  overflow: hidden;
+  border-bottom: 2px solid rgba(245,240,232,0.06);
+}
+.ph-bg-text {
+  position: absolute;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22vw; line-height: 1;
+  color: rgba(255,230,0,0.04);
+  letter-spacing: -0.03em;
+  bottom: -10%; right: -2%;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+.ph-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--red); color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  padding: 6px 16px; margin-bottom: 22px;
+  transform: rotate(-0.8deg);
+}
+.ph-title {
+  font-family: 'Black Ops One', cursive;
+  font-size: clamp(3rem, 10vw, 9rem);
+  letter-spacing: -0.01em; line-height: 0.9;
+  color: var(--white);
+  margin-bottom: 20px;
+  position: relative; z-index: 2;
+}
+.ph-title span { color: var(--yellow); }
+.ph-meta {
+  display: flex; align-items: center; gap: 24px;
+  flex-wrap: wrap;
+}
+.ph-date {
+  font-size: 0.62rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: rgba(245,240,232,0.35);
+}
+.ph-badge {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.85rem; letter-spacing: 0.2em;
+  color: var(--black); background: var(--yellow);
+  padding: 3px 12px;
+}
+
+/* ── MARQUEE (thin) ── */
+.marquee-bar {
+  width: 100%; overflow: hidden;
+  border-top: 2px solid var(--black);
+  border-bottom: 2px solid var(--black);
+  background: var(--yellow); padding: 7px 0;
+}
+.marquee-inner {
+  display: inline-flex; white-space: nowrap;
+  will-change: transform;
+  animation: tickerScroll 22s linear infinite;
+}
+.m-item {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.9rem; letter-spacing: 0.22em;
+  color: var(--black); padding: 0 24px;
+}
+.m-sep { color: rgba(0,0,0,0.4); padding: 0 4px; }
+@keyframes tickerScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ── MAIN CONTENT LAYOUT ── */
+.content-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 70px 5% 100px;
+}
+
+/* TOC */
+.toc {
+  border: 2px solid rgba(255,230,0,0.15);
+  padding: 28px 32px;
+  margin-bottom: 60px;
+  position: relative;
+}
+.toc::before {
+  content: 'INDEX';
+  position: absolute; top: -11px; left: 24px;
+  background: var(--black);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.8rem; letter-spacing: 0.3em;
+  color: var(--yellow); padding: 0 8px;
+}
+.toc-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.toc-list li { display: flex; align-items: baseline; gap: 12px; }
+.toc-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.85rem; color: var(--red); letter-spacing: 0.1em;
+  flex-shrink: 0; width: 28px;
+}
+.toc-list a {
+  font-size: 0.7rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: rgba(245,240,232,0.55);
+  text-decoration: none; transition: color 0.2s;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.toc-list a:hover { color: var(--yellow); border-color: rgba(255,230,0,0.3); }
+
+/* SECTIONS */
+.policy-section {
+  margin-bottom: 56px;
+  padding-top: 8px;
+}
+.section-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 5rem; line-height: 1;
+  color: var(--yellow); opacity: 0.1;
+  margin-bottom: -20px;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+.section-title {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--white);
+  margin-bottom: 18px;
+  position: relative;
+  padding-left: 18px;
+}
+.section-title::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--yellow);
+}
+.section-body {
+  font-size: 0.75rem;
+  line-height: 2;
+  color: rgba(245,240,232,0.5);
+  letter-spacing: 0.04em;
+}
+.section-body p { margin-bottom: 14px; }
+.section-body p:last-child { margin-bottom: 0; }
+.section-body strong {
+  color: rgba(245,240,232,0.85);
+  font-weight: 700;
+}
+.section-body a {
+  color: var(--yellow);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,230,0,0.3);
+  transition: border-color 0.2s;
+}
+.section-body a:hover { border-color: var(--yellow); }
+
+/* LIST INSIDE BODY */
+.policy-list {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 8px;
+  margin: 12px 0 14px;
+  padding-left: 4px;
+}
+.policy-list li {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 0.75rem; line-height: 1.8;
+  color: rgba(245,240,232,0.5); letter-spacing: 0.04em;
+}
+.policy-list li::before {
+  content: '→';
+  color: var(--red); flex-shrink: 0;
+  font-size: 0.8rem; margin-top: 2px;
+}
+
+/* HIGHLIGHT BOX */
+.highlight-box {
+  border-left: 3px solid var(--yellow);
+  background: rgba(255,230,0,0.04);
+  padding: 18px 22px;
+  margin: 20px 0;
+}
+.highlight-box p {
+  font-size: 0.72rem !important;
+  color: rgba(245,240,232,0.65) !important;
+  line-height: 1.9 !important;
+}
+
+/* DIVIDER */
+.section-divider {
+  width: 100%; height: 1px;
+  background: rgba(245,240,232,0.07);
+  margin: 56px 0;
+}
+
+/* CONTACT CARD */
+.contact-card {
+  border: 2px solid rgba(245,240,232,0.1);
+  padding: 36px 32px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.contact-card:hover { border-color: rgba(255,230,0,0.35); }
+.contact-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--yellow); opacity: 0;
+  transition: opacity 0.3s;
+}
+.contact-card:hover::before { opacity: 0.03; }
+.contact-card-title {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.2rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--white);
+  margin-bottom: 14px; position: relative; z-index: 1;
+}
+.contact-card-body {
+  font-size: 0.7rem; line-height: 1.9;
+  color: rgba(245,240,232,0.45); letter-spacing: 0.04em;
+  position: relative; z-index: 1;
+}
+.contact-card-body a {
+  color: var(--yellow); text-decoration: none;
+  border-bottom: 1px solid rgba(255,230,0,0.3);
+  transition: border-color 0.2s;
+}
+.contact-card-body a:hover { border-color: var(--yellow); }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--black);
+  border-top: 3px solid rgba(245,240,232,0.08);
+  padding: 28px 5% 56px;
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 16px;
+}
+.footer-logo { font-family: 'Black Ops One', cursive; font-size: 1.4rem; letter-spacing: 0.08em; color: var(--white); }
+.footer-logo span { color: var(--yellow); }
+.footer-links { display: flex; gap: 22px; }
+.footer-links a {
+  font-size: 0.58rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: rgba(245,240,232,0.35);
+  text-decoration: none; transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--yellow); }
+.footer-copy { font-size: 0.52rem; letter-spacing: 0.15em; color: rgba(245,240,232,0.2); text-transform: uppercase; }
+
+/* ── BOTTOM TICKER ── */
+.bottom-ticker {
+  position: fixed; bottom: 0; left: 0; width: 100%;
+  background: var(--yellow); overflow: hidden; z-index: 100;
+  padding: 5px 0; border-top: 3px solid var(--black);
+}
+.bottom-ticker .marquee-inner { animation: tickerScroll 16s linear infinite; }
+
+/* ── SCROLL REVEAL ── */
+.reveal {
+  opacity: 0; transform: translateY(32px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+
+/* ── BACK TO TOP ── */
+.back-top {
+  position: fixed; bottom: 46px; right: 24px;
+  z-index: 150;
+  background: var(--yellow); color: var(--black);
+  font-family: 'Black Ops One', cursive;
+  font-size: 0.65rem; letter-spacing: 0.15em;
+  padding: 10px 14px;
+  border: none; cursor: pointer;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s, transform 0.2s;
+  transform: translateY(8px);
+  text-decoration: none;
+  display: flex; align-items: center; gap: 6px;
+}
+.back-top.visible { opacity: 1; pointer-events: all; transform: translateY(0); }
+.back-top:hover { background: var(--red); color: var(--white); }
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .ph-title { font-size: clamp(2.5rem, 14vw, 5rem); }
+  .content-wrap { padding: 50px 5% 80px; }
+  .toc { padding: 22px 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="flicker-overlay" aria-hidden="true"></div>
+<div class="noise"></div>
+<div class="scanlines"></div>
+
+<!-- ── NAVBAR ── -->
+<nav class="nav">
+  <a class="nav-logo" href="index.html">SHELVES<span>.</span></a>
+  <a class="nav-back" href="index.html">← Back to Home</a>
+</nav>
+
+<!-- ── PAGE HEADER ── -->
+<header class="page-header">
+  <div class="ph-bg-text">PRIVACY</div>
+  <div class="ph-tag">Legal Document</div>
+  <h1 class="ph-title">Privacy<br><span>Policy.</span></h1>
+  <div class="ph-meta">
+    <span class="ph-date">Last Updated: April 2026</span>
+    <span class="ph-badge">Effective Immediately</span>
+  </div>
+</header>
+
+<!-- ── THIN MARQUEE ── -->
+<div class="marquee-bar">
+  <div class="marquee-inner">
+    <span class="m-item">PRIVACY POLICY</span><span class="m-sep">✦</span>
+    <span class="m-item">SHELVES PVT. LTD.</span><span class="m-sep">✦</span>
+    <span class="m-item">YOUR DATA · YOUR RIGHTS</span><span class="m-sep">✦</span>
+    <span class="m-item">INDIA · 2026</span><span class="m-sep">✦</span>
+    <span class="m-item">TRANSPARENT BY DEFAULT</span><span class="m-sep">✦</span>
+    <span class="m-item">PRIVACY POLICY</span><span class="m-sep">✦</span>
+    <span class="m-item">SHELVES PVT. LTD.</span><span class="m-sep">✦</span>
+    <span class="m-item">YOUR DATA · YOUR RIGHTS</span><span class="m-sep">✦</span>
+    <span class="m-item">INDIA · 2026</span><span class="m-sep">✦</span>
+    <span class="m-item">TRANSPARENT BY DEFAULT</span><span class="m-sep">✦</span>
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
+<main class="content-wrap">
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc reveal">
+    <ol class="toc-list">
+      <li><span class="toc-num">01</span><a href="#s1">Information We Collect</a></li>
+      <li><span class="toc-num">02</span><a href="#s2">How We Use Your Information</a></li>
+      <li><span class="toc-num">03</span><a href="#s3">Sharing Your Information</a></li>
+      <li><span class="toc-num">04</span><a href="#s4">Cookies &amp; Tracking</a></li>
+      <li><span class="toc-num">05</span><a href="#s5">Data Security</a></li>
+      <li><span class="toc-num">06</span><a href="#s6">Your Rights</a></li>
+      <li><span class="toc-num">07</span><a href="#s7">Children's Privacy</a></li>
+      <li><span class="toc-num">08</span><a href="#s8">Third-Party Links</a></li>
+      <li><span class="toc-num">09</span><a href="#s9">Changes to This Policy</a></li>
+      <li><span class="toc-num">10</span><a href="#s10">Contact Us</a></li>
+    </ol>
+  </div>
+
+  <!-- INTRO -->
+  <div class="policy-section reveal">
+    <div class="highlight-box">
+      <p>
+        At <strong>Shelves Pvt. Ltd.</strong> ("Shelves", "we", "our", "us"), we take your privacy seriously.
+        This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our
+        website <strong>theshelves.in</strong> and use our marketplace services.
+        Please read this carefully. If you disagree with its terms, please discontinue use of the platform.
+      </p>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 01 -->
+  <div class="policy-section reveal" id="s1">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Information We Collect</h2>
+    <div class="section-body">
+      <p>We collect information you provide directly to us and information that is automatically collected when you use Shelves.</p>
+      <p><strong>Information you provide:</strong></p>
+      <ul class="policy-list">
+        <li>Name, email address, phone number, and delivery address when you register or place an order</li>
+        <li>Payment information (processed securely via PCI-compliant third-party gateways — we do not store card numbers)</li>
+        <li>Profile photo, preferences, and wishlist data</li>
+        <li>Communications you send us, including support tickets and reviews</li>
+        <li>Seller information if you register as a vendor on our platform</li>
+      </ul>
+      <p><strong>Information collected automatically:</strong></p>
+      <ul class="policy-list">
+        <li>Device type, operating system, browser type and version</li>
+        <li>IP address and approximate geographic location</li>
+        <li>Pages visited, time spent, clicks, and search queries on Shelves</li>
+        <li>Referral URLs and session data</li>
+        <li>Crash reports and performance data to improve our platform</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 02 -->
+  <div class="policy-section reveal" id="s2">
+    <span class="section-num">02</span>
+    <h2 class="section-title">How We Use Your Information</h2>
+    <div class="section-body">
+      <p>We use the information we collect for the following purposes:</p>
+      <ul class="policy-list">
+        <li>To create and manage your account and process transactions</li>
+        <li>To deliver products and send order confirmations, shipping updates, and invoices</li>
+        <li>To personalise your shopping experience and show relevant product recommendations</li>
+        <li>To send promotional emails, offers, and early-access notifications — <strong>only if you opt in</strong></li>
+        <li>To respond to your queries and provide customer support</li>
+        <li>To detect, investigate, and prevent fraudulent transactions and abuse</li>
+        <li>To comply with applicable Indian laws and regulations including the IT Act, 2000 and DPDP Act, 2023</li>
+        <li>To improve, test, and develop new features for the Shelves platform</li>
+      </ul>
+      <div class="highlight-box">
+        <p><strong>We will never sell your personal data to third parties for their own marketing purposes.</strong> Your data is used solely to operate, improve, and protect the Shelves platform and your experience on it.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 03 -->
+  <div class="policy-section reveal" id="s3">
+    <span class="section-num">03</span>
+    <h2 class="section-title">Sharing Your Information</h2>
+    <div class="section-body">
+      <p>We may share your information in the following limited circumstances:</p>
+      <ul class="policy-list">
+        <li><strong>Sellers &amp; Logistics Partners:</strong> Your name, address, and order details are shared with the seller fulfilling your order and the delivery partner shipping it</li>
+        <li><strong>Payment Processors:</strong> Encrypted payment data is shared with our PCI-DSS compliant payment gateway partners (Razorpay, etc.) solely to process transactions</li>
+        <li><strong>Analytics &amp; Infra Providers:</strong> We use trusted services (e.g. Google Analytics, AWS) that process data on our behalf under strict data processing agreements</li>
+        <li><strong>Legal Obligations:</strong> We may disclose information if required by law, court order, or to protect the rights and safety of Shelves, its users, or the public</li>
+        <li><strong>Business Transfers:</strong> In the event of a merger, acquisition, or asset sale, your data may be transferred — you will be notified before it is subject to a different privacy policy</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 04 -->
+  <div class="policy-section reveal" id="s4">
+    <span class="section-num">04</span>
+    <h2 class="section-title">Cookies &amp; Tracking</h2>
+    <div class="section-body">
+      <p>Shelves uses cookies and similar tracking technologies to enhance your experience and understand how our platform is used.</p>
+      <ul class="policy-list">
+        <li><strong>Essential Cookies:</strong> Required for core functionality like login sessions and shopping cart — these cannot be disabled</li>
+        <li><strong>Analytics Cookies:</strong> Help us understand traffic patterns and improve the platform. You can opt out via browser settings</li>
+        <li><strong>Preference Cookies:</strong> Store your language, currency, and display preferences</li>
+        <li><strong>Marketing Cookies:</strong> Used to show relevant ads on third-party platforms. These are only activated with your explicit consent</li>
+      </ul>
+      <p>You can manage or disable cookies through your browser settings at any time. Disabling essential cookies may affect platform functionality.</p>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 05 -->
+  <div class="policy-section reveal" id="s5">
+    <span class="section-num">05</span>
+    <h2 class="section-title">Data Security</h2>
+    <div class="section-body">
+      <p>We implement industry-standard security measures to protect your personal information:</p>
+      <ul class="policy-list">
+        <li>All data in transit is encrypted using TLS 1.2 or higher (HTTPS)</li>
+        <li>Sensitive data at rest is encrypted using AES-256</li>
+        <li>Payment data is handled exclusively by PCI-DSS Level 1 certified gateways</li>
+        <li>Access to personal data is restricted to authorised personnel on a need-to-know basis</li>
+        <li>We conduct regular security audits and penetration testing</li>
+      </ul>
+      <div class="highlight-box">
+        <p>Despite our best efforts, no method of transmission over the internet is 100% secure. If you suspect your account has been compromised, please contact us immediately at <strong>security@theshelves.in</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 06 -->
+  <div class="policy-section reveal" id="s6">
+    <span class="section-num">06</span>
+    <h2 class="section-title">Your Rights</h2>
+    <div class="section-body">
+      <p>Under the Digital Personal Data Protection Act, 2023 (DPDP Act) and applicable Indian law, you have the following rights:</p>
+      <ul class="policy-list">
+        <li><strong>Right to Access:</strong> Request a copy of the personal data we hold about you</li>
+        <li><strong>Right to Correction:</strong> Request correction of inaccurate or incomplete personal data</li>
+        <li><strong>Right to Erasure:</strong> Request deletion of your personal data, subject to legal retention requirements</li>
+        <li><strong>Right to Withdraw Consent:</strong> Withdraw consent for marketing communications at any time via the unsubscribe link in any email</li>
+        <li><strong>Right to Grievance Redressal:</strong> Lodge a complaint with our Data Protection Officer or the Data Protection Board of India</li>
+        <li><strong>Right to Nominate:</strong> Nominate an individual to exercise rights on your behalf in the event of death or incapacity</li>
+      </ul>
+      <p>To exercise any of these rights, email us at <a href="mailto:privacy@theshelves.in">privacy@theshelves.in</a>. We will respond within 30 days.</p>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 07 -->
+  <div class="policy-section reveal" id="s7">
+    <span class="section-num">07</span>
+    <h2 class="section-title">Children's Privacy</h2>
+    <div class="section-body">
+      <p>Shelves is not intended for use by individuals under the age of <strong>18 years</strong>. We do not knowingly collect personal data from minors.</p>
+      <p>If we become aware that we have inadvertently collected data from a child under 18 without verifiable parental consent, we will take prompt steps to delete that information. If you believe we have collected data from a minor, please contact us at <a href="mailto:privacy@theshelves.in">privacy@theshelves.in</a> immediately.</p>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 08 -->
+  <div class="policy-section reveal" id="s8">
+    <span class="section-num">08</span>
+    <h2 class="section-title">Third-Party Links</h2>
+    <div class="section-body">
+      <p>The Shelves platform may contain links to third-party websites, seller storefronts, or social media pages (including our Instagram <a href="https://instagram.com/theshelves.in" target="_blank" rel="noopener">@theshelves.in</a>).</p>
+      <p>We are not responsible for the privacy practices of these external sites. We encourage you to read their privacy policies before providing any personal information. This Privacy Policy applies only to information collected directly through the Shelves platform.</p>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 09 -->
+  <div class="policy-section reveal" id="s9">
+    <span class="section-num">09</span>
+    <h2 class="section-title">Changes to This Policy</h2>
+    <div class="section-body">
+      <p>We may update this Privacy Policy from time to time to reflect changes in our practices, technology, or legal requirements. When we make material changes, we will:</p>
+      <ul class="policy-list">
+        <li>Update the "Last Updated" date at the top of this page</li>
+        <li>Send a notification to your registered email address</li>
+        <li>Display a prominent notice on the Shelves homepage for 30 days after the change</li>
+      </ul>
+      <p>Your continued use of Shelves after any changes constitutes your acceptance of the revised Privacy Policy. If you do not agree, you may close your account by contacting us.</p>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- 10 -->
+  <div class="policy-section reveal" id="s10">
+    <span class="section-num">10</span>
+    <h2 class="section-title">Contact Us</h2>
+    <div class="section-body" style="margin-bottom: 24px;">
+      <p>If you have any questions, concerns, or requests regarding this Privacy Policy or how we handle your data, please reach out to us through any of the channels below.</p>
+    </div>
+    <div class="contact-card reveal reveal-delay-1">
+      <div class="contact-card-title">Data Protection Officer</div>
+      <div class="contact-card-body">
+        <p><strong>Shelves Pvt. Ltd.</strong><br>
+        Email: <a href="mailto:privacy@theshelves.in">privacy@theshelves.in</a><br>
+        Support: <a href="mailto:support@theshelves.in">support@theshelves.in</a><br>
+        Instagram: <a href="https://instagram.com/theshelves.in" target="_blank" rel="noopener">@theshelves.in</a><br><br>
+        We aim to respond to all privacy-related requests within <strong>30 business days</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">SHELVES<span>.</span></div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="#">About</a>
+    <a href="#">Sell on Shelves</a>
+    <a href="https://instagram.com/theshelves.in" target="_blank" rel="noopener">Instagram</a>
+    <a href="privacy.html" style="color:rgba(255,230,0,0.6);">Privacy</a>
+    <a href="#">Contact</a>
+  </div>
+  <div class="footer-copy">© 2026 Shelves Pvt. Ltd. All rights reserved.</div>
+</footer>
+
+<!-- BACK TO TOP -->
+<a class="back-top" href="#" id="back-top" aria-label="Back to top">↑ TOP</a>
+
+<script>
+// SCROLL REVEAL
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// BACK TO TOP
+const backTop = document.getElementById('back-top');
+window.addEventListener('scroll', () => {
+  backTop.classList.toggle('visible', window.scrollY > 400);
+}, { passive: true });
+backTop.addEventListener('click', e => {
+  e.preventDefault();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// SMOOTH ANCHOR SCROLL for TOC links
+document.querySelectorAll('a[href^="#s"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) {
+      const offset = target.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: offset, behavior: 'smooth' });
+    }
+  });
+});
+</script>
+</body>
+</html>

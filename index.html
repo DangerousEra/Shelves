@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHELVES — Coming Soon</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Anton&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.png">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --yellow: #FFE600;
+  --red:    #FF2200;
+  --blue:   #1A1AFF;
+  --white:  #F5F0E8;
+  --black:  #0A0A0A;
+  --green:  #00FF41;
+  --orange: #FF6B00;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  overflow-x: hidden;
+  min-height: 100vh;
+  /* FIX: never animate body — it nukes compositing for every child */
+}
+
+/* ─────────────────────────────────────────
+   MICRO FLICKER OVERLAY  (fixed, GPU-only)
+   Sits above everything, pointer-events:none
+   Uses opacity only → compositor thread, zero layout/paint cost
+───────────────────────────────────────── */
+.flicker-overlay {
+  position: fixed; inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  /* invisible by default; flicker keyframe makes tiny dips */
+  opacity: 0;
+  background: var(--white);
+  will-change: opacity;
+  animation: microFlicker 8s linear infinite;
+}
+@keyframes microFlicker {
+  /* 99.6 % of the time: fully transparent (invisible) */
+  0%,   5.90%, 6.10%, 23.90%, 24.10%,
+  47.90%, 48.10%, 71.90%, 72.10%,
+  89.90%, 90.10%, 100% { opacity: 0; }
+
+  /* Micro blink 1 — single frame white flash */
+  6.00%  { opacity: 0.04; }
+
+  /* Micro blink 2 */
+  24.00% { opacity: 0.03; }
+
+  /* Micro blink 3 — slightly stronger */
+  48.00% { opacity: 0.05; }
+
+  /* Micro blink 4 */
+  72.00% { opacity: 0.03; }
+
+  /* Micro blink 5 */
+  90.00% { opacity: 0.04; }
+}
+
+/* ─────────────────────────────────────────
+   NOISE  (GPU compositor, no layout hit)
+───────────────────────────────────────── */
+.noise {
+  position: fixed; inset: 0;
+  z-index: 998;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px;
+  will-change: background-position;
+  animation: noiseAnim 0.5s steps(3) infinite;
+}
+@keyframes noiseAnim {
+  0%   { background-position: 0 0; }
+  33%  { background-position: 60px 90px; }
+  66%  { background-position: 110px 40px; }
+  100% { background-position: 0 0; }
+}
+
+/* ─────────────────────────────────────────
+   SCANLINES
+───────────────────────────────────────── */
+.scanlines {
+  position: fixed; inset: 0;
+  z-index: 997;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.022) 2px,
+    rgba(0,0,0,0.022) 4px
+  );
+}
+
+/* ───────────────── MOBILE FIX ───────────────── */
+@media (max-width: 600px) {
+
+  /* HERO EMAIL FORM */
+  .form-wrap {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    transform: none;
+  }
+
+  .email-input {
+    width: 100%;
+    border-right: 3px solid rgba(245,240,232,0.5);
+    font-size: 16px;
+  }
+
+  .notify-btn {
+    width: 100%;
+  }
+
+  /* FINAL CTA FORM */
+  .cta-form {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    transform: none;
+  }
+
+  .cta-input {
+    width: 100%;
+    border-right: 3px solid rgba(245,240,232,0.4);
+    font-size: 16px;
+  }
+
+  .cta-btn {
+    width: 100%;
+  }
+
+  /* CLEAN SPACING */
+  .hero {
+    padding: 60px 16px 100px;
+  }
+
+  .desc {
+    font-size: 0.75rem;
+    line-height: 1.6;
+  }
+
+  .cat-row {
+    gap: 6px;
+  }
+
+  /* OPTIONAL: reduce clutter on mobile */
+  .corner {
+    display: none;
+  }
+}
+/* ─────────────────────────────────────────
+   INTRO SPLASH
+───────────────────────────────────────── */
+.intro-overlay {
+  position: fixed; inset: 0;
+  background: var(--black);
+  z-index: 9990;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  will-change: opacity, visibility;
+  animation: introFade 0.5s ease-out 2.2s forwards;
+}
+.intro-logo {
+  font-family: 'Black Ops One', cursive;
+  font-size: clamp(3rem, 10vw, 9rem);
+  color: var(--yellow);
+  letter-spacing: 0.08em;
+  will-change: transform, opacity, filter;
+  animation: introScale 2.2s cubic-bezier(.22,1,.36,1) forwards;
+}
+.intro-sub {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(0.8rem, 2vw, 1.4rem);
+  letter-spacing: 0.5em;
+  color: rgba(245,240,232,0.4);
+  will-change: opacity, transform;
+  animation: introFadeIn 2.2s ease forwards;
+}
+@keyframes introScale {
+  0%   { transform: scale(0.3) skewX(-8deg); opacity: 0; filter: blur(20px); }
+  40%  { transform: scale(1.08) skewX(-2deg); opacity: 1; filter: blur(0); }
+  70%  { transform: scale(1) skewX(0); opacity: 1; }
+  88%  { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2.5) skewX(4deg); opacity: 0; filter: blur(10px); }
+}
+@keyframes introFadeIn {
+  0%   { opacity: 0; transform: translateY(10px); }
+  50%  { opacity: 0.4; }
+  88%  { opacity: 0.4; }
+  100% { opacity: 0; }
+}
+@keyframes introFade {
+  to { opacity: 0; pointer-events: none; visibility: hidden; }
+}
+
+/* ─────────────────────────────────────────
+   CORNER LABELS
+───────────────────────────────────────── */
+.corner {
+  position: fixed;
+  z-index: 50;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(245,240,232,0.25);
+  pointer-events: none;
+  line-height: 1.7;
+}
+.corner.tl { top: 16px; left: 16px; }
+.corner.tr { top: 16px; right: 16px; text-align: right; }
+
+/* ─────────────────────────────────────────
+   HERO
+───────────────────────────────────────── */
+.hero {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 80px 20px 120px;
+}
+
+/* BG MARQUEE STRIPS
+   FIX: use a wrapper that holds the rotation so the animation
+   can translate freely without fighting the rotate. */
+.bg-strip-wrap {
+  position: absolute;
+  width: 200%;
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+}
+.bg-strip-wrap.top  { top: -3%;  transform: rotate(-5deg); }
+.bg-strip-wrap.mid  { top: 38%;  transform: rotate(3deg);  }
+.bg-strip-wrap.bot  { bottom: 2%; transform: rotate(-2deg); }
+
+.bg-strip {
+  display: inline-flex;
+  white-space: nowrap;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14vw;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  will-change: transform;
+}
+.bg-strip-wrap.top .bg-strip  { color: rgba(255,230,0,0.055); animation: stripLeft 14s linear infinite; }
+.bg-strip-wrap.mid .bg-strip  { color: rgba(255,34,0,0.04);   animation: stripRight 18s linear infinite; }
+.bg-strip-wrap.bot .bg-strip  { color: rgba(26,26,255,0.04);  animation: stripLeft 16s linear infinite; }
+
+@keyframes stripLeft  { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes stripRight { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+
+/* FLOATING SHAPES
+   FIX: separate wrapper handles position/rotation;
+   inner element handles the float translate → no transform conflict */
+.shape-wrap {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+}
+.shape-wrap.s-circle  { top: 6%;  left: 3%; }
+.shape-wrap.s-rect    { top: 10%; right: 6%; }
+.shape-wrap.s-tri     { bottom: 22%; left: 5%; }
+.shape-wrap.s-donut   { bottom: 18%; right: 5%; }
+.shape-wrap.s-plus    { top: 42%; left: 1.5%; }
+.shape-wrap.s-star    { top: 55%; right: 2%; }
+.shape-wrap.s-x       { top: 22%; right: 22%; }
+.shape-wrap.s-sq2     { top: 70%; left: 20%; }
+
+/* Float animations — translate only */
+@keyframes floatA { 0%,100%{transform:translateY(0)}    50%{transform:translateY(-26px)} }
+@keyframes floatB { 0%,100%{transform:translateY(0)}    50%{transform:translateY(22px)} }
+@keyframes floatC { 0%,100%{transform:translate(0,0)} 33%{transform:translate(12px,-18px)} 66%{transform:translate(-10px,12px)} }
+/* Spin animation — rotate only, applied on the inner element */
+@keyframes spinEl { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+.sh-circle {
+  width: 200px; height: 200px;
+  border: 3px solid var(--yellow);
+  border-radius: 50%;
+  opacity: 0.7;
+  will-change: transform;
+  animation: spinEl 25s linear infinite;
+}
+.sh-circle-wrap { will-change: transform; animation: floatA 7s ease-in-out infinite; }
+
+.sh-rect {
+  width: 80px; height: 80px;
+  background: var(--red);
+  opacity: 0.85;
+  transform: rotate(45deg);
+}
+.sh-rect-wrap { will-change: transform; animation: floatB 5s ease-in-out infinite; }
+
+.sh-tri {
+  width: 0; height: 0;
+  border-left: 45px solid transparent;
+  border-right: 45px solid transparent;
+  border-bottom: 78px solid var(--blue);
+  opacity: 0.7;
+}
+.sh-tri-wrap { will-change: transform; animation: floatC 9s ease-in-out infinite; }
+
+.sh-donut {
+  width: 110px; height: 110px;
+  border: 16px solid var(--green);
+  border-radius: 50%;
+  opacity: 0.65;
+  will-change: transform;
+  animation: spinEl 18s linear infinite reverse;
+}
+.sh-donut-wrap { will-change: transform; animation: floatA 8s ease-in-out infinite reverse; }
+
+.sh-plus {
+  font-family: 'Black Ops One', cursive;
+  font-size: 5rem;
+  color: var(--orange);
+  opacity: 0.6;
+  line-height: 1;
+}
+.sh-plus-wrap { will-change: transform; animation: floatB 10s ease-in-out infinite; }
+
+.sh-star {
+  font-size: 4rem;
+  color: var(--yellow);
+  opacity: 0.75;
+  line-height: 1;
+  will-change: transform;
+  animation: spinEl 10s linear infinite;
+}
+.sh-star-wrap { will-change: transform; animation: floatC 6s ease-in-out infinite; }
+
+.sh-x {
+  font-family: 'Anton', sans-serif;
+  font-size: 6rem;
+  color: var(--red);
+  opacity: 0.18;
+  line-height: 1;
+}
+.sh-x-wrap { will-change: transform; animation: floatA 12s ease-in-out infinite; }
+
+.sh-sq2 {
+  width: 50px; height: 50px;
+  border: 3px solid var(--green);
+  opacity: 0.5;
+}
+.sh-sq2-wrap { will-change: transform; animation: floatC 6s ease-in-out infinite; }
+
+/* ACCENT LINES */
+.acc-line { position: absolute; pointer-events: none; z-index: 3; }
+.acc-line.h1 {
+  top: 21%; left: 0; width: 100%; height: 2px;
+  background: linear-gradient(90deg, transparent 10%, var(--red) 50%, transparent 90%);
+  opacity: 0.18;
+  will-change: transform, opacity;
+  animation: linePulse 4s ease-in-out infinite;
+}
+.acc-line.h2 {
+  bottom: 21%; left: 0; width: 100%; height: 1px;
+  background: linear-gradient(90deg, transparent 10%, var(--blue) 50%, transparent 90%);
+  opacity: 0.15;
+  will-change: transform, opacity;
+  animation: linePulse 5s ease-in-out infinite reverse;
+}
+@keyframes linePulse {
+  0%,100% { opacity: 0.1; transform: scaleX(0.6); }
+  50%     { opacity: 0.25; transform: scaleX(1); }
+}
+
+/* ─────────────────────────────────────────
+   HERO CONTENT
+───────────────────────────────────────── */
+.hero-inner {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--yellow);
+  color: var(--black);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  padding: 7px 18px;
+  margin-bottom: 28px;
+  will-change: transform;
+  animation: revealUp 0.7s ease-out 2.4s both, tagPulse 4s ease-in-out 3.2s infinite;
+}
+.tag-dot {
+  width: 7px; height: 7px;
+  background: var(--red);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: blink 1.2s ease-in-out infinite;
+}
+@keyframes tagPulse {
+  0%,100% { transform: rotate(-1.2deg) scale(1); }
+  50%     { transform: rotate(0.8deg) scale(1.03); }
+}
+
+/* LOGO + GLITCH
+   FIX: will-change on logo so browser pre-composites the layer */
+.logo {
+  font-family: 'Black Ops One', cursive;
+  font-size: clamp(5.5rem, 18vw, 16rem);
+  letter-spacing: -0.02em;
+  line-height: 0.88;
+  color: var(--white);
+  position: relative;
+  display: inline-block;
+  margin-bottom: 10px;
+  will-change: transform;
+  animation: revealUp 0.8s cubic-bezier(.22,1,.36,1) 2.5s both, glitchLogo 6s 3.5s infinite;
+}
+.logo::before {
+  content: 'SHELVES';
+  position: absolute; top: 0; left: 0;
+  color: var(--red);
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+  will-change: transform, opacity;
+  animation: glitchTop 6s 3.5s infinite;
+  pointer-events: none;
+}
+.logo::after {
+  content: 'SHELVES';
+  position: absolute; top: 0; left: 0;
+  color: var(--blue);
+  clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+  will-change: transform, opacity;
+  animation: glitchBot 6s 3.5s infinite;
+  pointer-events: none;
+}
+@keyframes glitchLogo {
+  0%,87%,100% { transform: translate(0); }
+  88%  { transform: translate(-5px, 3px); }
+  90%  { transform: translate(5px, -3px); }
+  92%  { transform: translate(-3px, 5px); }
+  94%  { transform: translate(4px, -2px); }
+  96%  { transform: translate(0); }
+}
+@keyframes glitchTop {
+  0%,86%,100% { transform: translate(0); opacity: 0; }
+  87% { transform: translate(-8px,-3px); opacity: 0.85; }
+  89% { transform: translate(6px,2px);   opacity: 0.7; }
+  91% { transform: translate(-4px,4px);  opacity: 0.8; }
+  93% { opacity: 0; }
+}
+@keyframes glitchBot {
+  0%,84%,100% { transform: translate(0); opacity: 0; }
+  85% { transform: translate(8px,3px);   opacity: 0.8; }
+  87% { transform: translate(-5px,-2px); opacity: 0.9; }
+  89% { transform: translate(3px,4px);   opacity: 0.7; }
+  91% { opacity: 0; }
+}
+
+.sub-head {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(1.1rem, 4vw, 3.6rem);
+  letter-spacing: 0.22em;
+  color: var(--yellow);
+  margin-bottom: 12px;
+  animation: revealUp 0.7s ease-out 2.65s both, colorShift 7s ease-in-out 3.5s infinite;
+}
+@keyframes colorShift {
+  0%,100% { color: var(--yellow); }
+  33%     { color: var(--green); }
+  66%     { color: var(--orange); }
+}
+
+.desc {
+  font-size: clamp(0.65rem, 1.3vw, 0.88rem);
+  letter-spacing: 0.1em;
+  color: rgba(245,240,232,0.45);
+  text-transform: uppercase;
+  margin-bottom: 18px;
+  max-width: 560px;
+  line-height: 1.8;
+  animation: revealUp 0.7s ease-out 2.75s both;
+}
+
+.cat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 36px;
+  animation: revealUp 0.7s ease-out 2.85s both;
+}
+.cat-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border: 1.5px solid;
+  transition: all 0.2s;
+  cursor: default;
+}
+.cat-tag:nth-child(1) { border-color: var(--red);    color: var(--red); }
+.cat-tag:nth-child(2) { border-color: var(--yellow);  color: var(--yellow); }
+.cat-tag:nth-child(3) { border-color: var(--green);   color: var(--green); }
+.cat-tag:nth-child(4) { border-color: var(--blue);    color: #6e6eff; }
+.cat-tag:nth-child(5) { border-color: var(--orange);  color: var(--orange); }
+.cat-tag:nth-child(6) { border-color: rgba(245,240,232,0.3); color: rgba(245,240,232,0.4); }
+.cat-tag:hover {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--black);
+  transform: rotate(-1deg) scale(1.06);
+}
+
+.form-wrap {
+  display: flex;
+  gap: 0;
+  margin-bottom: 28px;
+  transform: rotate(0.4deg);
+  animation: revealUp 0.7s ease-out 2.95s both;
+}
+.email-input {
+  background: transparent;
+  border: 3px solid rgba(245,240,232,0.5);
+  border-right: none;
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  padding: 14px 20px;
+  width: clamp(200px, 28vw, 300px);
+  outline: none;
+  letter-spacing: 0.06em;
+  transition: border-color 0.25s;
+}
+.email-input::placeholder { color: rgba(245,240,232,0.28); }
+.email-input:focus { border-color: var(--yellow); }
+.notify-btn {
+  background: var(--yellow);
+  border: 3px solid var(--yellow);
+  color: var(--black);
+  font-family: 'Black Ops One', cursive;
+  font-size: 0.82rem;
+  padding: 14px 26px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.notify-btn:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--white);
+  transform: scale(1.05) rotate(-0.5deg);
+}
+.notify-btn:active { transform: scale(0.97); }
+
+.insta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245,240,232,0.55);
+  border: 1.5px solid rgba(245,240,232,0.15);
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: all 0.25s;
+  animation: revealUp 0.7s ease-out 3.05s both;
+  text-decoration: none;
+}
+.insta-link:hover {
+  border-color: var(--yellow);
+  color: var(--yellow);
+  transform: rotate(-0.5deg);
+}
+.live-dot {
+  width: 7px; height: 7px;
+  background: var(--red);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: blink 1.4s ease-in-out infinite;
+}
+@keyframes blink {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%     { opacity: 0.3; transform: scale(1.5); }
+}
+
+/* ─────────────────────────────────────────
+   MARQUEE BARS  (GPU-accelerated)
+───────────────────────────────────────── */
+.marquee-bar {
+  width: 100%;
+  background: var(--yellow);
+  overflow: hidden;
+  border-top: 3px solid var(--black);
+  border-bottom: 3px solid var(--black);
+  padding: 10px 0;
+  position: relative;
+  z-index: 20;
+}
+.marquee-inner {
+  display: inline-flex;
+  white-space: nowrap;
+  will-change: transform;
+  animation: tickerScroll 20s linear infinite;
+}
+.marquee-bar.dark { background: var(--red); }
+.marquee-bar.dark .marquee-inner { animation: tickerScroll 24s linear infinite reverse; }
+.m-item {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.22em;
+  color: var(--black);
+  padding: 0 28px;
+}
+.marquee-bar.dark .m-item { color: var(--white); }
+.m-sep { color: var(--black); font-size: 1.2rem; padding: 0 6px; opacity: 0.5; }
+.marquee-bar.dark .m-sep { color: rgba(245,240,232,0.5); }
+@keyframes tickerScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ─────────────────────────────────────────
+   FEATURES
+───────────────────────────────────────── */
+.features {
+  width: 100%;
+  padding: 80px 5%;
+  position: relative;
+  overflow: hidden;
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.feat-card {
+  border: 2px solid rgba(245,240,232,0.1);
+  padding: 36px 28px;
+  position: relative;
+  transition: border-color 0.3s, transform 0.3s;
+  overflow: hidden;
+}
+.feat-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--card-accent);
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 0;
+}
+.feat-card:hover::before  { opacity: 0.06; }
+.feat-card:hover          { border-color: var(--card-accent); transform: translateY(-4px); }
+.feat-card:nth-child(1) { --card-accent: var(--yellow); }
+.feat-card:nth-child(2) { --card-accent: var(--red); }
+.feat-card:nth-child(3) { --card-accent: var(--green); }
+.feat-card:nth-child(4) { --card-accent: var(--blue); }
+.feat-card:nth-child(5) { --card-accent: var(--orange); }
+.feat-card:nth-child(6) { --card-accent: var(--yellow); }
+.feat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 4rem; line-height: 1;
+  color: var(--card-accent);
+  opacity: 0.15;
+  position: absolute; top: 12px; right: 20px;
+  pointer-events: none;
+}
+.feat-icon { font-size: 2rem; margin-bottom: 16px; display: block; position: relative; z-index: 1; }
+.feat-title {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.3rem; letter-spacing: 0.08em;
+  color: var(--white); margin-bottom: 10px;
+  text-transform: uppercase; position: relative; z-index: 1;
+}
+.feat-desc { font-size: 0.7rem; line-height: 1.9; color: rgba(245,240,232,0.45); letter-spacing: 0.05em; position: relative; z-index: 1; }
+
+/* SECTION HEADER */
+.sec-header { text-align: center; margin-bottom: 48px; }
+.sec-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.35em;
+  text-transform: uppercase; color: var(--yellow);
+  margin-bottom: 14px; display: block;
+}
+.sec-title {
+  font-family: 'Black Ops One', cursive;
+  font-size: clamp(2rem, 6vw, 5rem);
+  letter-spacing: 0.02em; color: var(--white);
+  display: inline-block;
+}
+.sec-title span { color: var(--red); }
+
+/* ─────────────────────────────────────────
+   STATEMENT
+───────────────────────────────────────── */
+.statement {
+  padding: 80px 5%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+  flex-wrap: wrap;
+  background: var(--yellow);
+  position: relative;
+  overflow: hidden;
+}
+.stmt-text {
+  font-family: 'Black Ops One', cursive;
+  font-size: clamp(2.5rem, 7vw, 6.5rem);
+  color: var(--black); line-height: 0.92;
+  letter-spacing: -0.01em; max-width: 700px;
+  position: relative; z-index: 2;
+}
+.stmt-text em { font-style: normal; color: var(--red); display: block; }
+.stmt-side { display: flex; flex-direction: column; gap: 18px; z-index: 2; }
+.stmt-badge {
+  background: var(--black); color: var(--yellow);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem; letter-spacing: 0.2em;
+  padding: 12px 24px; border: 2px solid var(--black);
+  transform: rotate(-2deg);
+}
+.stmt-badge:nth-child(2) { transform: rotate(1.5deg);  background: var(--red);  color: var(--white); }
+.stmt-badge:nth-child(3) { transform: rotate(-1deg);   background: var(--blue); color: var(--white); }
+.stmt-bg-text {
+  position: absolute;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20vw; color: rgba(0,0,0,0.06);
+  letter-spacing: -0.03em; white-space: nowrap;
+  bottom: -2%; right: -2%; pointer-events: none;
+}
+
+/* ─────────────────────────────────────────
+   HOW IT WORKS
+───────────────────────────────────────── */
+.how { padding: 80px 5%; position: relative; overflow: hidden; }
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 40px 24px; max-width: 1000px; margin: 0 auto;
+}
+.step { position: relative; padding-left: 20px; }
+.step::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--step-color);
+}
+.step:nth-child(1) { --step-color: var(--yellow); }
+.step:nth-child(2) { --step-color: var(--red); }
+.step:nth-child(3) { --step-color: var(--green); }
+.step:nth-child(4) { --step-color: var(--blue); }
+.step-num { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; line-height: 1; color: var(--step-color); opacity: 0.25; display: block; margin-bottom: 6px; }
+.step-title { font-family: 'Anton', sans-serif; font-size: 1.15rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; color: var(--white); }
+.step-desc { font-size: 0.68rem; line-height: 1.9; color: rgba(245,240,232,0.4); letter-spacing: 0.04em; }
+
+/* ─────────────────────────────────────────
+   STATS
+───────────────────────────────────────── */
+.stats {
+  padding: 60px 5%;
+  background: rgba(255,230,0,0.04);
+  border-top: 1px solid rgba(255,230,0,0.12);
+  border-bottom: 1px solid rgba(255,230,0,0.12);
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 40px; max-width: 900px; margin: 0 auto; text-align: center;
+}
+.stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  line-height: 1; display: block; margin-bottom: 4px;
+}
+.stat-num.y { color: var(--yellow); }
+.stat-num.r { color: var(--red); }
+.stat-num.g { color: var(--green); }
+.stat-num.b { color: #6e6eff; }
+.stat-label { font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(245,240,232,0.35); }
+
+/* ─────────────────────────────────────────
+   FINAL CTA
+───────────────────────────────────────── */
+.final-cta {
+  padding: 100px 5%;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.final-cta .cta-title {
+  font-family: 'Black Ops One', cursive;
+  font-size: clamp(2.5rem, 9vw, 8rem);
+  line-height: 0.9; letter-spacing: -0.01em;
+  margin-bottom: 24px; position: relative; z-index: 2;
+}
+.final-cta .cta-title .line2 { color: var(--yellow); display: block; }
+.final-cta .cta-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem; letter-spacing: 0.15em;
+  color: rgba(245,240,232,0.4); text-transform: uppercase;
+  margin-bottom: 48px; position: relative; z-index: 2;
+}
+.cta-form {
+  display: flex; gap: 0;
+  justify-content: center; margin-bottom: 36px;
+  position: relative; z-index: 2; transform: rotate(-0.3deg);
+}
+.cta-input {
+  background: transparent;
+  border: 3px solid rgba(245,240,232,0.4); border-right: none;
+  color: var(--white); font-family: 'Space Mono', monospace;
+  font-size: 0.78rem; padding: 16px 22px;
+  width: clamp(220px, 30vw, 340px);
+  outline: none; letter-spacing: 0.06em; transition: border-color 0.25s;
+}
+.cta-input::placeholder { color: rgba(245,240,232,0.25); }
+.cta-input:focus { border-color: var(--yellow); }
+.cta-btn {
+  background: var(--yellow); border: 3px solid var(--yellow);
+  color: var(--black); font-family: 'Black Ops One', cursive;
+  font-size: 0.85rem; padding: 16px 32px;
+  letter-spacing: 0.1em; cursor: pointer;
+  transition: all 0.2s; text-transform: uppercase;
+}
+.cta-btn:hover { background: var(--black); border-color: var(--yellow); color: var(--yellow); }
+.cta-note { font-size: 0.58rem; letter-spacing: 0.18em; color: rgba(245,240,232,0.25); text-transform: uppercase; position: relative; z-index: 2; }
+.cta-bg-text {
+  position: absolute; font-family: 'Bebas Neue', sans-serif;
+  font-size: 22vw; color: rgba(255,230,0,0.03);
+  letter-spacing: -0.04em; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none; white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────── */
+footer {
+  background: var(--black);
+  border-top: 3px solid rgba(245,240,232,0.08);
+  padding: 32px 5%;
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  padding-bottom: 56px; /* clear fixed ticker */
+}
+.footer-logo { font-family: 'Black Ops One', cursive; font-size: 1.5rem; letter-spacing: 0.08em; color: var(--white); }
+.footer-logo span { color: var(--yellow); }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a {
+  font-size: 0.6rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: rgba(245,240,232,0.35);
+  text-decoration: none; transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--yellow); }
+.footer-copy { font-size: 0.55rem; letter-spacing: 0.15em; color: rgba(245,240,232,0.2); text-transform: uppercase; }
+
+/* ─────────────────────────────────────────
+   BOTTOM FIXED TICKER
+───────────────────────────────────────── */
+.bottom-ticker {
+  position: fixed;
+  bottom: 0; left: 0; width: 100%;
+  background: var(--yellow);
+  overflow: hidden; z-index: 100;
+  padding: 6px 0;
+  border-top: 3px solid var(--black);
+}
+.bottom-ticker .marquee-inner {
+  animation: tickerScroll 16s linear infinite;
+}
+
+/* ─────────────────────────────────────────
+   SCROLL REVEAL
+───────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-5 { transition-delay: 0.5s; }
+
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
+@media (max-width: 600px) {
+  .shape-wrap.s-circle .sh-circle { width: 120px; height: 120px; }
+  .shape-wrap.s-rect   .sh-rect   { width: 50px; height: 50px; }
+  .shape-wrap.s-plus,
+  .shape-wrap.s-star   { display: none; }
+  .statement { gap: 30px; }
+}
+</style>
+</head>
+<body>
+
+<!-- MICRO FLICKER OVERLAY — compositor layer, zero layout cost -->
+<div class="flicker-overlay" aria-hidden="true"></div>
+
+<div class="noise"></div>
+<div class="scanlines"></div>
+
+<!-- INTRO -->
+<div class="intro-overlay">
+  <div class="intro-logo">SHELVES</div>
+  <div class="intro-sub">Marketplace · Loading</div>
+</div>
+
+<!-- CORNER LABELS -->
+<div class="corner tl">Shelves Pvt. Ltd<br>Est. 2025</div>
+<div class="corner tr">India<br>Coming Soon</div>
+
+<!-- ═══════════════════════════ HERO ═══════════════════════════ -->
+<section class="hero">
+
+  <!-- BG STRIPS — rotation in wrapper, translate in inner -->
+  <div class="bg-strip-wrap top"><div class="bg-strip">SHELVES &nbsp; SHELVES &nbsp; SHELVES &nbsp; SHELVES &nbsp; SHELVES &nbsp; SHELVES &nbsp; SHELVES &nbsp; SHELVES &nbsp;</div></div>
+  <div class="bg-strip-wrap mid"><div class="bg-strip">MARKETPLACE &nbsp; E-COMMERCE &nbsp; BUY · SELL · WIN &nbsp; MARKETPLACE &nbsp; E-COMMERCE &nbsp; BUY · SELL · WIN &nbsp;</div></div>
+  <div class="bg-strip-wrap bot"><div class="bg-strip">THE FUTURE OF SHOPPING &nbsp; THE FUTURE OF SHOPPING &nbsp; THE FUTURE OF SHOPPING &nbsp; THE FUTURE OF SHOPPING &nbsp;</div></div>
+
+  <!-- SHAPES — float wrapper + inner element separate concerns -->
+  <div class="shape-wrap s-circle"><div class="sh-circle-wrap"><div class="sh-circle"></div></div></div>
+  <div class="shape-wrap s-rect">  <div class="sh-rect-wrap">  <div class="sh-rect"></div>  </div></div>
+  <div class="shape-wrap s-tri">   <div class="sh-tri-wrap">   <div class="sh-tri"></div>   </div></div>
+  <div class="shape-wrap s-donut"> <div class="sh-donut-wrap"> <div class="sh-donut"></div> </div></div>
+  <div class="shape-wrap s-plus">  <div class="sh-plus-wrap">  <div class="sh-plus">+</div>  </div></div>
+  <div class="shape-wrap s-star">  <div class="sh-star-wrap">  <div class="sh-star">★</div>  </div></div>
+  <div class="shape-wrap s-x">     <div class="sh-x-wrap">     <div class="sh-x">✕</div>     </div></div>
+  <div class="shape-wrap s-sq2">   <div class="sh-sq2-wrap">   <div class="sh-sq2"></div>   </div></div>
+
+  <div class="acc-line h1"></div>
+  <div class="acc-line h2"></div>
+
+  <div class="hero-inner">
+    <div class="tag-pill">
+      <span class="tag-dot"></span>
+      🔥 Something Big Is Dropping
+    </div>
+
+    <h1 class="logo">SHELVES</h1>
+
+    <div class="sub-head">India's Wildest Marketplace</div>
+
+    <p class="desc">
+      One platform. Every product. No compromise.<br>
+      Electronics · Fashion · Home · Beauty · Sports · Everything.
+    </p>
+
+    <div class="cat-row">
+      <span class="cat-tag">Electronics</span>
+      <span class="cat-tag">Fashion</span>
+      <span class="cat-tag">Home &amp; Living</span>
+      <span class="cat-tag">Beauty</span>
+      <span class="cat-tag">Sports</span>
+      <span class="cat-tag">&amp; 100+ More</span>
+    </div>
+
+    <div class="form-wrap">
+      <input class="email-input" type="email" placeholder="drop your email here" id="hero-email" />
+      <button class="notify-btn" id="hero-btn">Get Early Access</button>
+    </div>
+
+    <a class="insta-link" href="https://instagram.com/theshelves.in/" target="_blank" rel="noopener">
+      <span class="live-dot"></span>
+      Follow us @theshelves.in on Instagram
+      <span>→</span>
+    </a>
+  </div>
+</section>
+
+<!-- MARQUEE 1 -->
+<div class="marquee-bar">
+  <div class="marquee-inner">
+    <span class="m-item">SHELVES</span><span class="m-sep">✦</span>
+    <span class="m-item">COMING SOON</span><span class="m-sep">✦</span>
+    <span class="m-item">SHOP EVERYTHING</span><span class="m-sep">✦</span>
+    <span class="m-item">ONE PLATFORM</span><span class="m-sep">✦</span>
+    <span class="m-item">INDIA'S MARKETPLACE</span><span class="m-sep">✦</span>
+    <span class="m-item">GET EARLY ACCESS</span><span class="m-sep">✦</span>
+    <span class="m-item">@THESHELVES.IN</span><span class="m-sep">✦</span>
+    <span class="m-item">BUY · SELL · WIN</span><span class="m-sep">✦</span>
+    <span class="m-item">SHELVES</span><span class="m-sep">✦</span>
+    <span class="m-item">COMING SOON</span><span class="m-sep">✦</span>
+    <span class="m-item">SHOP EVERYTHING</span><span class="m-sep">✦</span>
+    <span class="m-item">ONE PLATFORM</span><span class="m-sep">✦</span>
+    <span class="m-item">INDIA'S MARKETPLACE</span><span class="m-sep">✦</span>
+    <span class="m-item">GET EARLY ACCESS</span><span class="m-sep">✦</span>
+    <span class="m-item">@THESHELVES.IN</span><span class="m-sep">✦</span>
+    <span class="m-item">BUY · SELL · WIN</span><span class="m-sep">✦</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════ WHY SHELVES ═══════════════════════ -->
+<section class="features">
+  <div class="sec-header reveal">
+    <span class="sec-eyebrow">Why Shelves</span>
+    <h2 class="sec-title">Built <span>Different</span></h2>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card reveal reveal-delay-1">
+      <span class="feat-num">01</span>
+      <span class="feat-icon">⚡</span>
+      <div class="feat-title">Lightning Fast Delivery</div>
+      <p class="feat-desc">Same-day and next-day delivery across major cities. We don't believe in waiting.</p>
+    </div>
+    <div class="feat-card reveal reveal-delay-2">
+      <span class="feat-num">02</span>
+      <span class="feat-icon">🔥</span>
+      <div class="feat-title">Insane Deals Every Day</div>
+      <p class="feat-desc">Flash sales, daily drops, and exclusive prices that beat every platform out there.</p>
+    </div>
+    <div class="feat-card reveal reveal-delay-3">
+      <span class="feat-num">03</span>
+      <span class="feat-icon">🛡️</span>
+      <div class="feat-title">100% Buyer Protection</div>
+      <p class="feat-desc">Full refund guarantee. No questions asked. Your money is always safe with Shelves.</p>
+    </div>
+    <div class="feat-card reveal reveal-delay-4">
+      <span class="feat-num">04</span>
+      <span class="feat-icon">📦</span>
+      <div class="feat-title">10M+ Products</div>
+      <p class="feat-desc">Every category. Every brand. Every budget. From INR 99 to the premium stuff.</p>
+    </div>
+    <div class="feat-card reveal reveal-delay-5">
+      <span class="feat-num">05</span>
+      <span class="feat-icon">🏪</span>
+      <div class="feat-title">Sell On Shelves</div>
+      <p class="feat-desc">Got products? Turn your inventory into income. Zero listing fees for early sellers.</p>
+    </div>
+    <div class="feat-card reveal reveal-delay-1">
+      <span class="feat-num">06</span>
+      <span class="feat-icon">🤝</span>
+      <div class="feat-title">Real Human Support</div>
+      <p class="feat-desc">Actual people, not bots. 24/7 support in Hindi and English. We pick up.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE 2 (dark/red) -->
+<div class="marquee-bar dark">
+  <div class="marquee-inner">
+    <span class="m-item">ELECTRONICS</span><span class="m-sep">★</span>
+    <span class="m-item">FASHION &amp; APPAREL</span><span class="m-sep">★</span>
+    <span class="m-item">HOME &amp; LIVING</span><span class="m-sep">★</span>
+    <span class="m-item">BEAUTY &amp; SKINCARE</span><span class="m-sep">★</span>
+    <span class="m-item">SPORTS &amp; FITNESS</span><span class="m-sep">★</span>
+    <span class="m-item">BOOKS &amp; STATIONERY</span><span class="m-sep">★</span>
+    <span class="m-item">GROCERY &amp; FOOD</span><span class="m-sep">★</span>
+    <span class="m-item">TOYS &amp; GAMING</span><span class="m-sep">★</span>
+    <span class="m-item">ELECTRONICS</span><span class="m-sep">★</span>
+    <span class="m-item">FASHION &amp; APPAREL</span><span class="m-sep">★</span>
+    <span class="m-item">HOME &amp; LIVING</span><span class="m-sep">★</span>
+    <span class="m-item">BEAUTY &amp; SKINCARE</span><span class="m-sep">★</span>
+    <span class="m-item">SPORTS &amp; FITNESS</span><span class="m-sep">★</span>
+    <span class="m-item">BOOKS &amp; STATIONERY</span><span class="m-sep">★</span>
+    <span class="m-item">GROCERY &amp; FOOD</span><span class="m-sep">★</span>
+    <span class="m-item">TOYS &amp; GAMING</span><span class="m-sep">★</span>
+  </div>
+</div>
+
+<!-- ══════════════════════ STATEMENT ══════════════════════ -->
+<section class="statement">
+  <div class="stmt-text reveal">
+    We're not<br>just another<br>
+    <em>Marketplace.</em>
+  </div>
+  <div class="stmt-side">
+    <div class="stmt-badge reveal reveal-delay-1">Amazon Competitor 🚀</div>
+    <div class="stmt-badge reveal reveal-delay-2">Flipkart's Rival 🔥</div>
+    <div class="stmt-badge reveal reveal-delay-3">India's Own 🇮🇳</div>
+  </div>
+  <div class="stmt-bg-text">SHELVES</div>
+</section>
+
+<!-- ══════════════════════ HOW IT WORKS ══════════════════════ -->
+<section class="how">
+  <div class="sec-header reveal">
+    <span class="sec-eyebrow">How It Works</span>
+    <h2 class="sec-title">Simple as <span>That</span></h2>
+  </div>
+  <div class="steps-grid">
+    <div class="step reveal reveal-delay-1">
+      <span class="step-num">01</span>
+      <div class="step-title">Browse the Shelves</div>
+      <p class="step-desc">Millions of products across every category. Curated. Ranked. Ready.</p>
+    </div>
+    <div class="step reveal reveal-delay-2">
+      <span class="step-num">02</span>
+      <div class="step-title">Pick Your Price</div>
+      <p class="step-desc">Filter by price, brand, rating. Best deals surface first. No filler.</p>
+    </div>
+    <div class="step reveal reveal-delay-3">
+      <span class="step-num">03</span>
+      <div class="step-title">One-Tap Checkout</div>
+      <p class="step-desc">UPI, cards, COD, EMI. Pay however you want. Done in 10 seconds.</p>
+    </div>
+    <div class="step reveal reveal-delay-4">
+      <span class="step-num">04</span>
+      <div class="step-title">Get It Fast</div>
+      <p class="step-desc">Track in real-time. Same-day to most metros. Zero delivery anxiety.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ STATS ══════════════════════ -->
+<div class="stats">
+  <div class="stats-grid">
+    <div class="reveal">
+      <span class="stat-num y">10M+</span>
+      <span class="stat-label">Products at Launch</span>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <span class="stat-num r">500+</span>
+      <span class="stat-label">Verified Sellers</span>
+    </div>
+    <div class="reveal reveal-delay-2">
+      <span class="stat-num g">24 Hr</span>
+      <span class="stat-label">Delivery in Top Cities</span>
+    </div>
+    <div class="reveal reveal-delay-3">
+      <span class="stat-num b">100%</span>
+      <span class="stat-label">Buyer Protection</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ FINAL CTA ══════════════════════ -->
+<section class="final-cta">
+  <div class="cta-bg-text">DROP</div>
+  <h2 class="cta-title reveal">
+    Be First.<br>
+    <span class="line2">Be On Shelves.</span>
+  </h2>
+  <p class="cta-sub reveal reveal-delay-1">
+    Join thousands on the early access list — exclusive launch deals await.
+  </p>
+  <div class="cta-form reveal reveal-delay-2">
+    <input class="cta-input" type="email" placeholder="your@email.com" id="cta-email" />
+    <button class="cta-btn" id="cta-btn">Lock My Spot</button>
+  </div>
+  <p class="cta-note reveal reveal-delay-3">No spam. Ever. Unsubscribe anytime. We respect your inbox.</p>
+</section>
+
+<!-- MARQUEE 3 -->
+<div class="marquee-bar" style="border-bottom:none;">
+  <div class="marquee-inner" style="animation-duration:22s;animation-direction:reverse;">
+    <span class="m-item">SHELVES</span><span class="m-sep">◆</span>
+    <span class="m-item">THE MARKETPLACE</span><span class="m-sep">◆</span>
+    <span class="m-item">COMING 2026</span><span class="m-sep">◆</span>
+    <span class="m-item">@THESHELVES.IN</span><span class="m-sep">◆</span>
+    <span class="m-item">GET NOTIFIED</span><span class="m-sep">◆</span>
+    <span class="m-item">BUY SELL WIN</span><span class="m-sep">◆</span>
+    <span class="m-item">INDIA'S PLATFORM</span><span class="m-sep">◆</span>
+    <span class="m-item">SHELVES</span><span class="m-sep">◆</span>
+    <span class="m-item">THE MARKETPLACE</span><span class="m-sep">◆</span>
+    <span class="m-item">COMING 2026</span><span class="m-sep">◆</span>
+    <span class="m-item">@THESHELVES.IN</span><span class="m-sep">◆</span>
+    <span class="m-item">GET NOTIFIED</span><span class="m-sep">◆</span>
+    <span class="m-item">BUY SELL WIN</span><span class="m-sep">◆</span>
+    <span class="m-item">INDIA'S PLATFORM</span><span class="m-sep">◆</span>
+  </div>
+</div>
+
+<!-- ══════════════════════ FOOTER ══════════════════════ -->
+<footer>
+  <div class="footer-logo">SHELVES<span>.</span></div>
+  <div class="footer-links">
+    <a href="#">About</a>
+    <a href="#">Sell on Shelves</a>
+    <a href="https://instagram.com/theshelves.in" target="_blank" rel="noopener">Instagram</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="#">Contact</a>
+  </div>
+  <div class="footer-copy">© 2026 Shelves Pvt. Ltd. All rights reserved.</div>
+</footer>
+
+<script>
+// ── SCROLL REVEAL
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ── EMAIL HANDLERS
+function handleNotify(inputId, btnId, defaultLabel) {
+  const input = document.getElementById(inputId);
+  const btn   = document.getElementById(btnId);
+  btn.addEventListener('click', () => {
+    if (input.value && input.value.includes('@')) {
+      btn.textContent = "You're In ✓";
+      Object.assign(btn.style, { background:'var(--green)', borderColor:'var(--green)', color:'var(--black)' });
+      input.value = '';
+      input.placeholder = 'See you on launch day 🔥';
+      setTimeout(() => {
+        btn.textContent = defaultLabel;
+        Object.assign(btn.style, { background:'var(--yellow)', borderColor:'var(--yellow)', color:'var(--black)' });
+        input.placeholder = inputId === 'hero-email' ? 'drop your email here' : 'your@email.com';
+      }, 3500);
+    } else {
+      btn.textContent = 'Enter Valid Email!';
+      Object.assign(btn.style, { background:'var(--red)', borderColor:'var(--red)', color:'var(--white)' });
+      setTimeout(() => {
+        btn.textContent = defaultLabel;
+        Object.assign(btn.style, { background:'var(--yellow)', borderColor:'var(--yellow)', color:'var(--black)' });
+      }, 2000);
+    }
+  });
+}
+handleNotify('hero-email', 'hero-btn', 'Get Early Access');
+handleNotify('cta-email',  'cta-btn',  'Lock My Spot');
+
+// ── CAT TAG HOVER GLITCH
+document.querySelectorAll('.cat-tag').forEach(tag => {
+  tag.addEventListener('mouseenter', () => {
+    tag.style.transform = `rotate(${(Math.random()-.5)*6}deg) scale(1.08)`;
+  });
+  tag.addEventListener('mouseleave', () => { tag.style.transform = ''; });
+});
+</script>
+</body>
+</html>
