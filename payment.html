@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment — SHELVES</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Anton&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.png">
+<script>
+// Load Razorpay dynamically
+function loadRazorpay() {
+  return new Promise((resolve, reject) => {
+    if (typeof Razorpay !== 'undefined') {
+      resolve();
+      return;
+    }
+    
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => {
+      console.log('Razorpay loaded successfully');
+      resolve();
+    };
+    script.onerror = () => {
+      console.error('Failed to load Razorpay');
+      reject(new Error('Failed to load payment gateway'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+// Load Razorpay when page loads
+document.addEventListener('DOMContentLoaded', loadRazorpay);
+</script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --yellow: #FFE600;
+  --red:    #FF2200;
+  --blue:   #1A1AFF;
+  --white:  #F5F0E8;
+  --black:  #0A0A0A;
+  --green:  #00FF41;
+  --orange: #FF6B00;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ── MICRO FLICKER ── */
+.flicker-overlay {
+  position: fixed; inset: 0;
+  z-index: 9999; pointer-events: none;
+  opacity: 0; background: var(--white);
+  will-change: opacity;
+  animation: microFlicker 8s linear infinite;
+}
+@keyframes microFlicker {
+  0%,5.90%,6.10%,23.90%,24.10%,47.90%,48.10%,71.90%,72.10%,89.90%,90.10%,100% { opacity: 0; }
+  6.00%  { opacity: 0.04; }
+  24.00% { opacity: 0.03; }
+  48.00% { opacity: 0.05; }
+  72.00% { opacity: 0.03; }
+  90.00% { opacity: 0.04; }
+}
+
+/* ── NOISE ── */
+.noise {
+  position: fixed; inset: 0; z-index: 998; pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px;
+  will-change: background-position;
+  animation: noiseAnim 0.5s steps(3) infinite;
+}
+@keyframes noiseAnim {
+  0%   { background-position: 0 0; }
+  33%  { background-position: 60px 90px; }
+  66%  { background-position: 110px 40px; }
+  100% { background-position: 0 0; }
+}
+
+/* ── SCANLINES ── */
+.scanlines {
+  position: fixed; inset: 0; z-index: 997; pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.022) 2px, rgba(0,0,0,0.022) 4px);
+}
+
+/* ── NAVBAR ── */
+.nav {
+  position: fixed; top: 0; left: 0; width: 100%;
+  z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 5%;
+  border-bottom: 2px solid rgba(245,240,232,0.07);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(10,10,10,0.85);
+}
+.nav-logo {
+  font-family: 'Black Ops One', cursive;
+  font-size: 1.5rem;
+  letter-spacing: 0.08em;
+  color: var(--white);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-logo span { color: var(--yellow); }
+.nav-logo:hover { color: var(--yellow); }
+.nav-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245,240,232,0.45);
+  text-decoration: none;
+  border: 1.5px solid rgba(245,240,232,0.15);
+  padding: 7px 16px;
+  transition: all 0.2s;
+}
+.nav-back:hover { color: var(--yellow); border-color: var(--yellow); }
+
+/* ── PAGE HEADER ── */
+.page-header {
+  position: relative;
+  width: 100%;
+  padding: 140px 5% 70px;
+  overflow: hidden;
+  border-bottom: 2px solid rgba(245,240,232,0.06);
+}
+.ph-bg-text {
+  position: absolute;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22vw; line-height: 1;
+  color: rgba(255,34,0,0.04);
+  letter-spacing: -0.03em;
+  bottom: -10%; right: -2%;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+.ph-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--red); color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  padding: 6px 16px; margin-bottom: 22px;
+  transform: rotate(-0.8deg);
+}
+.ph-title {
+  font-family: 'Black Ops One', cursive;
+  font-size: clamp(3rem, 10vw, 9rem);
+  letter-spacing: -0.01em; line-height: 0.9;
+  color: var(--white);
+  margin-bottom: 20px;
+  position: relative; z-index: 2;
+}
+.ph-title span { color: var(--red); }
+.ph-meta {
+  display: flex; align-items: center; gap: 24px;
+  flex-wrap: wrap;
+}
+.ph-date {
+  font-size: 0.62rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: rgba(245,240,232,0.35);
+}
+.ph-badge {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.85rem; letter-spacing: 0.2em;
+  color: var(--black); background: var(--yellow);
+  padding: 3px 12px;
+}
+
+/* ── MARQUEE (thin) ── */
+.marquee-bar {
+  width: 100%; overflow: hidden;
+  border-top: 2px solid var(--black);
+  border-bottom: 2px solid var(--black);
+  background: var(--red); padding: 7px 0;
+}
+.marquee-inner {
+  display: inline-flex; white-space: nowrap;
+  will-change: transform;
+  animation: tickerScroll 22s linear infinite;
+}
+.m-item {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.9rem; letter-spacing: 0.22em;
+  color: var(--white); padding: 0 24px;
+}
+.m-sep { color: rgba(255,255,255,0.4); padding: 0 4px; }
+@keyframes tickerScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ── MAIN CONTENT LAYOUT ── */
+.content-wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 70px 5% 100px;
+}
+
+/* PAYMENT CONTAINER */
+.payment-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 60px;
+}
+
+/* ORDER SUMMARY */
+.order-summary {
+  background: linear-gradient(135deg, rgba(255,34,0,0.1) 0%, rgba(255,230,0,0.1) 100%);
+  border: 2px solid rgba(245,240,232,0.15);
+  padding: 40px 32px;
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+.summary-header {
+  margin-bottom: 30px;
+}
+.summary-title {
+  font-family: 'Black Ops One', cursive;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  color: var(--white); margin-bottom: 8px;
+}
+.summary-subtitle {
+  font-size: 0.7rem; color: rgba(245,240,232,0.6);
+}
+.order-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(245,240,232,0.1);
+}
+.item-info {
+  flex: 1;
+}
+.item-name {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem; font-weight: 700;
+  color: var(--white); margin-bottom: 4px;
+}
+.item-desc {
+  font-size: 0.65rem; color: rgba(245,240,232,0.5);
+}
+.item-price {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem; color: var(--yellow);
+}
+.order-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 0 0; margin-top: 20px;
+  border-top: 2px solid rgba(245,240,232,0.2);
+}
+.total-label {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.2rem; text-transform: uppercase;
+  color: var(--white);
+}
+.total-amount {
+  font-family: 'Black Ops One', cursive;
+  font-size: 1.8rem; color: var(--yellow);
+}
+
+/* PAYMENT FORM */
+.payment-form-section {
+  background: rgba(245,240,232,0.02);
+  border: 2px solid rgba(245,240,232,0.1);
+  padding: 40px 32px;
+}
+.form-header {
+  margin-bottom: 40px;
+}
+.form-title {
+  font-family: 'Black Ops One', cursive;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  color: var(--white); margin-bottom: 8px;
+}
+.form-subtitle {
+  font-size: 0.7rem; color: rgba(245,240,232,0.6);
+}
+.payment-form {
+  max-width: 100%;
+}
+.form-section {
+  margin-bottom: 32px;
+}
+.section-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem; letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--red); margin-bottom: 16px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+.form-label {
+  display: block;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--yellow); margin-bottom: 8px;
+}
+.form-input, .form-select {
+  width: 100%;
+  background: rgba(245,240,232,0.05);
+  border: 2px solid rgba(245,240,232,0.4);
+  color: var(--white);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  padding: 14px 16px;
+  outline: none;
+  letter-spacing: 0.04em;
+  transition: all 0.25s;
+  border-radius: 0;
+}
+.form-input::placeholder {
+  color: rgba(245,240,232,0.5);
+}
+.form-input:focus, .form-select:focus {
+  border-color: var(--red);
+  background: rgba(245,240,232,0.08);
+  box-shadow: 0 0 0 1px var(--red);
+}
+
+/* PAYMENT METHODS */
+.payment-methods {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.payment-method {
+  background: transparent;
+  border: 2px solid rgba(245,240,232,0.3);
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.payment-method:hover {
+  border-color: var(--red);
+  background: rgba(255,34,0,0.05);
+}
+.payment-method.active {
+  border-color: var(--red);
+  background: rgba(255,34,0,0.1);
+}
+.method-icon {
+  font-size: 1.5rem; margin-bottom: 8px; display: block;
+}
+.method-name {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem; font-weight: 700;
+  color: var(--white);
+}
+
+/* SECURITY BADGES */
+.security-badges {
+  display: flex; align-items: center; gap: 16px;
+  margin: 24px 0;
+  padding: 16px;
+  background: rgba(0,255,65,0.05);
+  border: 1px solid rgba(0,255,65,0.2);
+}
+.security-icon {
+  font-size: 1.2rem; color: var(--green);
+}
+.security-text {
+  font-size: 0.65rem; color: rgba(245,240,232,0.6);
+  line-height: 1.4;
+}
+
+/* PAY BUTTON */
+.pay-btn {
+  width: 100%;
+  background: var(--red);
+  color: var(--white);
+  font-family: 'Black Ops One', cursive;
+  font-size: 1rem;
+  padding: 18px 32px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 24px;
+}
+.pay-btn:hover {
+  background: var(--yellow);
+  color: var(--black);
+  transform: scale(1.02) rotate(-0.5deg);
+}
+.pay-btn:disabled {
+  background: rgba(245,240,232,0.2);
+  color: rgba(245,240,232,0.4);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* PROCESSING OVERLAY */
+.processing-overlay {
+  position: fixed; inset: 0;
+  background: rgba(10,10,10,0.95);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.processing-overlay.active {
+  display: flex;
+}
+.processing-content {
+  text-align: center;
+}
+.processing-spinner {
+  width: 60px; height: 60px;
+  border: 3px solid rgba(245,240,232,0.2);
+  border-top: 3px solid var(--yellow);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.processing-text {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem; color: var(--white);
+  margin-bottom: 8px;
+}
+.processing-subtext {
+  font-size: 0.65rem; color: rgba(245,240,232,0.6);
+}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--black);
+  border-top: 3px solid rgba(245,240,232,0.08);
+  padding: 28px 5% 56px;
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 16px;
+}
+.footer-logo { font-family: 'Black Ops One', cursive; font-size: 1.4rem; letter-spacing: 0.08em; color: var(--white); }
+.footer-logo span { color: var(--yellow); }
+.footer-links { display: flex; gap: 22px; }
+.footer-links a {
+  font-size: 0.58rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: rgba(245,240,232,0.35);
+  text-decoration: none; transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--yellow); }
+.footer-copy { font-size: 0.52rem; letter-spacing: 0.15em; color: rgba(245,240,232,0.2); text-transform: uppercase; }
+
+/* ── SCROLL REVEAL ── */
+.reveal {
+  opacity: 0; transform: translateY(32px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+
+/* RESPONSIVE */
+
+/* Large tablets and small desktops */
+@media (max-width: 1024px) {
+  .content-wrap { max-width: 100%; }
+  .payment-container { grid-template-columns: 1fr; gap: 30px; }
+  .order-summary { position: static; }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .nav { padding: 12px 4%; }
+  .nav-logo { font-size: 1.3rem; }
+  .nav-back { font-size: 0.58rem; padding: 6px 12px; }
+  
+  .page-header { padding: 120px 4% 60px; }
+  .ph-title { font-size: clamp(2.8rem, 12vw, 6rem); }
+  .ph-tag { font-size: 0.6rem; padding: 5px 14px; }
+  
+  .content-wrap { padding: 60px 4% 80px; }
+  .payment-container { gap: 25px; }
+  .order-summary, .payment-form-section { padding: 30px 24px; }
+  
+  .payment-methods { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; gap: 0; }
+  
+  footer { padding: 24px 4% 56px; flex-direction: column; text-align: center; gap: 20px; }
+  .footer-logo { font-size: 1.2rem; }
+  .footer-links { gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .footer-copy { font-size: 0.48rem; }
+}
+
+/* Mobile phones */
+@media (max-width: 600px) {
+  .nav { padding: 10px 4%; }
+  .nav-logo { font-size: 1.2rem; }
+  .nav-back { font-size: 0.55rem; padding: 5px 10px; }
+  
+  .page-header { padding: 100px 4% 50px; }
+  .ph-title { font-size: clamp(2.5rem, 14vw, 5rem); }
+  .ph-tag { font-size: 0.55rem; padding: 4px 12px; }
+  .ph-meta { flex-direction: column; gap: 12px; }
+  
+  .content-wrap { padding: 50px 4% 70px; }
+  .order-summary, .payment-form-section { padding: 25px 20px; }
+  .summary-title, .form-title { font-size: 1.2rem; }
+  
+  .form-input, .form-select {
+    font-size: 16px;
+    padding: 16px 18px;
+    background: rgba(245,240,232,0.08);
+    border: 2px solid rgba(245,240,232,0.5);
+  }
+  .form-input::placeholder {
+    color: rgba(245,240,232,0.6);
+  }
+  .form-label { font-size: 0.6rem; }
+  .pay-btn {
+    font-size: 0.9rem;
+    padding: 16px 24px;
+  }
+}
+
+/* Small mobile phones */
+@media (max-width: 400px) {
+  .nav-logo { font-size: 1rem; }
+  .nav-back { font-size: 0.5rem; padding: 4px 8px; }
+  
+  .ph-title { font-size: clamp(2rem, 16vw, 4rem); }
+  .ph-tag { font-size: 0.5rem; }
+  
+  .content-wrap { padding: 40px 4% 60px; }
+  .order-summary, .payment-form-section { padding: 20px 16px; }
+  .summary-title, .form-title { font-size: 1rem; }
+  
+  .item-name { font-size: 0.7rem; }
+  .item-price { font-size: 1rem; }
+  .total-amount { font-size: 1.5rem; }
+  
+  footer { padding: 20px 4% 56px; }
+  .footer-logo { font-size: 1rem; }
+  .footer-links { gap: 12px; }
+  .footer-links a { font-size: 0.52rem; }
+  .footer-copy { font-size: 0.45rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="flicker-overlay" aria-hidden="true"></div>
+<div class="noise"></div>
+<div class="scanlines"></div>
+
+<!-- ── NAVBAR ── -->
+<nav class="nav">
+  <a class="nav-logo" href="index.html">SHELVES<span>.</span></a>
+  <a class="nav-back" href="javascript:history.back()">← Back</a>
+</nav>
+
+<!-- ── PAGE HEADER ── -->
+<header class="page-header">
+  <div class="ph-bg-text">PAYMENT</div>
+  <div class="ph-tag">Secure Checkout</div>
+  <h1 class="ph-title">Complete<br><span>Payment</span></h1>
+  <div class="ph-meta">
+    <span class="ph-date">Secure Transaction</span>
+    <span class="ph-badge">256-bit Encryption</span>
+  </div>
+</header>
+
+<!-- ── THIN MARQUEE ── -->
+<div class="marquee-bar">
+  <div class="marquee-inner">
+    <span class="m-item">SECURE PAYMENT</span><span class="m-sep">✦</span>
+    <span class="m-item">256-BIT ENCRYPTION</span><span class="m-sep">✦</span>
+    <span class="m-item">MULTIPLE PAYMENT OPTIONS</span><span class="m-sep">✦</span>
+    <span class="m-item">INSTANT CONFIRMATION</span><span class="m-sep">✦</span>
+    <span class="m-item">SECURE PAYMENT</span><span class="m-sep">✦</span>
+    <span class="m-item">256-BIT ENCRYPTION</span><span class="m-sep">✦</span>
+    <span class="m-item">MULTIPLE PAYMENT OPTIONS</span><span class="m-sep">✦</span>
+    <span class="m-item">INSTANT CONFIRMATION</span><span class="m-sep">✦</span>
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
+<main class="content-wrap">
+
+  <div class="payment-container">
+    <!-- ORDER SUMMARY -->
+    <div class="order-summary reveal">
+      <div class="summary-header">
+        <h2 class="summary-title">Order Summary</h2>
+        <p class="summary-subtitle">Review your order details</p>
+      </div>
+      
+      <div class="order-item">
+        <div class="item-info">
+          <div class="item-name" id="itemName">Supporter Tier</div>
+          <div class="item-desc" id="itemDesc">Monthly support for Shelves</div>
+        </div>
+        <div class="item-price" id="itemPrice">₹499</div>
+      </div>
+      
+      <div class="order-item">
+        <div class="item-info">
+          <div class="item-name">Processing Fee</div>
+          <div class="item-desc">Secure transaction handling</div>
+        </div>
+        <div class="item-price">₹0</div>
+      </div>
+      
+      <div class="order-total">
+        <div class="total-label">Total Amount</div>
+        <div class="total-amount" id="totalAmount">₹499</div>
+      </div>
+    </div>
+
+    <!-- PAYMENT FORM -->
+    <div class="payment-form-section reveal reveal-delay-1">
+      <div class="form-header">
+        <h2 class="form-title">Payment Details</h2>
+        <p class="form-subtitle">Enter your payment information securely</p>
+      </div>
+      
+      <form class="payment-form" id="paymentForm" name="payment" method="POST" data-netlify="true">
+        <input type="hidden" name="form-name" value="payment">
+        <input type="hidden" id="orderAmount" name="amount" value="499">
+        <input type="hidden" id="orderItem" name="item" value="Supporter Tier">
+        
+        <!-- CONTACT INFORMATION -->
+        <div class="form-section">
+          <h3 class="section-title">Contact Information</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">First Name *</label>
+              <input type="text" class="form-input" name="first_name" required placeholder="John">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name *</label>
+              <input type="text" class="form-input" name="last_name" required placeholder="Doe">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" class="form-input" name="email" required placeholder="john@example.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
+            <input type="tel" class="form-input" name="phone" required placeholder="+91 98765 43210">
+          </div>
+        </div>
+
+        <!-- PAYMENT METHOD -->
+        <div class="form-section">
+          <h3 class="section-title">Payment Method</h3>
+          <div class="payment-methods">
+            <div class="payment-method active" data-method="upi">
+              <span class="method-icon">📱</span>
+              <span class="method-name">UPI</span>
+            </div>
+            <div class="payment-method" data-method="card">
+              <span class="method-icon">💳</span>
+              <span class="method-name">Card</span>
+            </div>
+            <div class="payment-method" data-method="netbanking">
+              <span class="method-icon">🏦</span>
+              <span class="method-name">Net Banking</span>
+            </div>
+            <div class="payment-method" data-method="wallet">
+              <span class="method-icon">💼</span>
+              <span class="method-name">Wallet</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD DETAILS (shown when card is selected) -->
+        <div class="form-section" id="cardDetails" style="display: none;">
+          <h3 class="section-title">Card Details</h3>
+          <div class="form-group">
+            <label class="form-label">Card Number *</label>
+            <input type="text" class="form-input" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Expiry Date *</label>
+              <input type="text" class="form-input" id="expiryDate" placeholder="MM/YY" maxlength="5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">CVV *</label>
+              <input type="text" class="form-input" id="cvv" placeholder="123" maxlength="3">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cardholder Name *</label>
+            <input type="text" class="form-input" placeholder="John Doe">
+          </div>
+        </div>
+
+        <!-- BILLING ADDRESS -->
+        <div class="form-section">
+          <h3 class="section-title">Billing Address</h3>
+          <div class="form-group">
+            <label class="form-label">Street Address *</label>
+            <input type="text" class="form-input" name="address" required placeholder="123 Main Street">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">City *</label>
+              <input type="text" class="form-input" name="city" required placeholder="Bangalore">
+            </div>
+            <div class="form-group">
+              <label class="form-label">State *</label>
+              <select class="form-select" name="state" required>
+                <option value="">Select State</option>
+                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                <option value="Assam">Assam</option>
+                <option value="Bihar">Bihar</option>
+                <option value="Chhattisgarh">Chhattisgarh</option>
+                <option value="Goa">Goa</option>
+                <option value="Gujarat">Gujarat</option>
+                <option value="Haryana">Haryana</option>
+                <option value="Himachal Pradesh">Himachal Pradesh</option>
+                <option value="Jharkhand">Jharkhand</option>
+                <option value="Karnataka">Karnataka</option>
+                <option value="Kerala">Kerala</option>
+                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Manipur">Manipur</option>
+                <option value="Meghalaya">Meghalaya</option>
+                <option value="Mizoram">Mizoram</option>
+                <option value="Nagaland">Nagaland</option>
+                <option value="Odisha">Odisha</option>
+                <option value="Punjab">Punjab</option>
+                <option value="Rajasthan">Rajasthan</option>
+                <option value="Sikkim">Sikkim</option>
+                <option value="Tamil Nadu">Tamil Nadu</option>
+                <option value="Telangana">Telangana</option>
+                <option value="Tripura">Tripura</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="Uttarakhand">Uttarakhand</option>
+                <option value="West Bengal">West Bengal</option>
+                <option value="Delhi">Delhi (NCT)</option>
+                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                <option value="Ladakh">Ladakh</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">PIN Code *</label>
+              <input type="text" class="form-input" name="pincode" required placeholder="560001">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Country</label>
+              <input type="text" class="form-input" value="India" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECURITY BADGES -->
+        <div class="security-badges">
+          <span class="security-icon">🔒</span>
+          <div class="security-text">
+            Your payment information is encrypted and secure. We never store your card details.
+          </div>
+        </div>
+
+        <button type="submit" class="pay-btn" id="payButton">
+          Pay ₹499 →
+        </button>
+        <button type="button" class="pay-btn" id="testButton" style="background: var(--blue); margin-top: 10px;">
+          Test Razorpay Only
+        </button>
+      </form>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── PROCESSING OVERLAY ── -->
+<div class="processing-overlay" id="processingOverlay">
+  <div class="processing-content">
+    <div class="processing-spinner"></div>
+    <div class="processing-text">Processing Payment...</div>
+    <div class="processing-subtext">Please don't close this window</div>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">SHELVES<span>.</span></div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="sell.html">Sell on Shelves</a>
+    <a href="https://instagram.com/theshelves.in" target="_blank" rel="noopener">Instagram</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="contact.html">Contact</a>
+  </div>
+  <div class="footer-copy">© 2026 Shelves Pvt. Ltd. All rights reserved.</div>
+</footer>
+
+<script>
+// SCROLL REVEAL
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// GET URL PARAMETERS
+const urlParams = new URLSearchParams(window.location.search);
+const amount = urlParams.get('amount') || '499';
+const item = urlParams.get('item') || 'Supporter Tier';
+const itemDesc = urlParams.get('desc') || 'Monthly support for Shelves';
+
+// UPDATE ORDER SUMMARY
+document.getElementById('itemPrice').textContent = `₹${amount}`;
+document.getElementById('totalAmount').textContent = `₹${amount}`;
+document.getElementById('orderAmount').value = amount;
+document.getElementById('itemName').textContent = item;
+document.getElementById('itemDesc').textContent = itemDesc;
+document.getElementById('orderItem').value = item;
+document.getElementById('payButton').textContent = `Pay ₹${amount} →`;
+
+// PAYMENT METHOD SELECTION
+document.querySelectorAll('.payment-method').forEach(method => {
+  method.addEventListener('click', () => {
+    document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
+    method.classList.add('active');
+    
+    // Show/hide card details based on selection
+    const cardDetails = document.getElementById('cardDetails');
+    if (method.dataset.method === 'card') {
+      cardDetails.style.display = 'block';
+    } else {
+      cardDetails.style.display = 'none';
+    }
+  });
+});
+
+// CARD NUMBER FORMATTING
+document.getElementById('cardNumber').addEventListener('input', (e) => {
+  let value = e.target.value.replace(/\s/g, '');
+  let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+  e.target.value = formattedValue;
+});
+
+// EXPIRY DATE FORMATTING
+document.getElementById('expiryDate').addEventListener('input', (e) => {
+  let value = e.target.value.replace(/\D/g, '');
+  if (value.length >= 2) {
+    value = value.slice(0, 2) + '/' + value.slice(2, 4);
+  }
+  e.target.value = value;
+});
+
+// CVV RESTRICTION
+document.getElementById('cvv').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3);
+});
+
+// RAZORPAY INTEGRATION
+function initiateRazorpayPayment(amount, orderData) {
+  console.log('Starting Razorpay payment for amount:', amount);
+  
+  loadRazorpay().then(() => {
+    const options = {
+      key: "rzp_test_1DpOX1ZkO0d4j2", // Test key
+      amount: amount * 100, // Convert to paise
+      currency: "INR",
+      name: "SHELVES",
+      description: orderData.item,
+      handler: function (response) {
+        console.log('Payment successful:', response);
+        handlePaymentSuccess(response, orderData);
+      },
+      prefill: {
+        name: orderData.firstName + " " + orderData.lastName,
+        email: orderData.email,
+        contact: orderData.phone
+      },
+      theme: {
+        "color": "#FFE600"
+      },
+      modal: {
+        "ondismiss": function() {
+          document.getElementById('processingOverlay').classList.remove('active');
+        }
+      }
+    };
+    
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function (response){
+      console.error('Payment failed:', response.error);
+      document.getElementById('processingOverlay').classList.remove('active');
+      alert('Payment failed: ' + response.error.description);
+    });
+    
+    rzp.open();
+  }).catch(error => {
+    console.error('Failed to load Razorpay:', error);
+    document.getElementById('processingOverlay').classList.remove('active');
+    alert('Payment gateway is not available. Please try again later.');
+  });
+}
+
+// HANDLE PAYMENT SUCCESS
+function handlePaymentSuccess(response, orderData) {
+  console.log('Handling payment success:', response);
+  
+  // Hide processing overlay
+  document.getElementById('processingOverlay').classList.remove('active');
+  
+  // Show success message
+  alert('Payment successful! Thank you for your support.');
+  
+  // Save payment data to Netlify
+  const paymentData = {
+    ...orderData,
+    payment_id: response.razorpay_payment_id,
+    payment_status: 'success',
+    timestamp: new Date().toISOString(),
+    form_name: 'payment_success'
+  };
+  
+  // Submit to Netlify (in background)
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/';
+  form.style.display = 'none';
+  
+  Object.keys(paymentData).forEach(key => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = paymentData[key];
+    form.appendChild(input);
+  });
+  
+  document.body.appendChild(form);
+  
+  // Redirect to success page immediately
+  setTimeout(() => {
+    window.location.href = `payment-success.html?payment_id=${response.razorpay_payment_id}&amount=${orderData.amount}`;
+  }, 1000);
+}
+
+// FORM SUBMISSION
+document.getElementById('paymentForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  console.log('Form submission started');
+  
+  const selectedMethod = document.querySelector('.payment-method.active').dataset.method;
+  const formData = new FormData(e.target);
+  
+  // Collect form data
+  const orderData = {
+    amount: parseInt(document.getElementById('orderAmount').value),
+    item: document.getElementById('orderItem').value,
+    firstName: formData.get('first_name'),
+    lastName: formData.get('last_name'),
+    email: formData.get('email'),
+    phone: formData.get('phone'),
+    address: formData.get('address'),
+    city: formData.get('city'),
+    state: formData.get('state'),
+    pincode: formData.get('pincode'),
+    payment_method: selectedMethod,
+    form_name: 'payment'
+  };
+  
+  console.log('Order data:', orderData);
+  
+  // Validate form
+  if (!orderData.firstName || !orderData.lastName || !orderData.email || !orderData.phone) {
+    alert('Please fill in all required fields.');
+    return;
+  }
+  
+  // Validate email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(orderData.email)) {
+    alert('Please enter a valid email address.');
+    return;
+  }
+  
+  // Validate phone (basic validation for Indian numbers)
+  const phoneRegex = /^[6-9]\d{9}$/;
+  if (!phoneRegex.test(orderData.phone.replace(/\D/g, ''))) {
+    alert('Please enter a valid 10-digit phone number.');
+    return;
+  }
+  
+  // Show processing overlay
+  document.getElementById('processingOverlay').classList.add('active');
+  
+  // Initiate payment based on method
+  if (selectedMethod === 'card' || selectedMethod === 'upi' || selectedMethod === 'netbanking' || selectedMethod === 'wallet') {
+    // Use Razorpay for all payment methods
+    setTimeout(() => {
+      console.log('Initiating Razorpay payment...');
+      initiateRazorpayPayment(orderData.amount, orderData);
+    }, 1000);
+  } else {
+    document.getElementById('processingOverlay').classList.remove('active');
+    alert('Please select a payment method.');
+  }
+});
+
+// TEST BUTTON - Simple Razorpay Test
+document.getElementById('testButton').addEventListener('click', () => {
+  console.log('Test button clicked');
+  
+  loadRazorpay().then(() => {
+    const options = {
+      key: "rzp_test_1DpOX1ZkO0d4j2",
+      amount: 100, // ₹1 for testing
+      currency: "INR",
+      name: "SHELVES TEST",
+      description: "Test Payment",
+      handler: function (response) {
+        alert('Test payment successful! Payment ID: ' + response.razorpay_payment_id);
+      },
+      theme: {
+        "color": "#FFE600"
+      }
+    };
+    
+    const rzp = new Razorpay(options);
+    rzp.open();
+  }).catch(error => {
+    console.error('Test failed:', error);
+    alert('Test failed: ' + error.message);
+  });
+});
+
+// BACK BUTTON
+document.querySelector('.nav-back').addEventListener('click', (e) => {
+  e.preventDefault();
+  history.back();
+});
+</script>
+</body>
+</html>

@@ -110,36 +110,58 @@ body {
   .form-wrap {
     flex-direction: column;
     width: 100%;
-    gap: 10px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    gap: 12px;
     transform: none;
   }
 
   .email-input {
     width: 100%;
-    border-right: 3px solid rgba(245,240,232,0.5);
+    border-right: 3px solid rgba(245,240,232,0.6);
     font-size: 16px;
+    padding: 16px 20px;
+    background: rgba(245,240,232,0.08);
+  }
+
+  .email-input::placeholder {
+    color: rgba(245,240,232,0.6);
   }
 
   .notify-btn {
     width: 100%;
+    padding: 16px 24px;
+    font-size: 0.9rem;
   }
 
   /* FINAL CTA FORM */
   .cta-form {
     flex-direction: column;
     width: 100%;
-    gap: 10px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    gap: 12px;
     transform: none;
   }
 
   .cta-input {
     width: 100%;
-    border-right: 3px solid rgba(245,240,232,0.4);
+    border-right: 3px solid rgba(245,240,232,0.5);
     font-size: 16px;
+    padding: 18px 24px;
+    background: rgba(245,240,232,0.08);
+  }
+
+  .cta-input::placeholder {
+    color: rgba(245,240,232,0.6);
   }
 
   .cta-btn {
     width: 100%;
+    padding: 18px 28px;
+    font-size: 0.95rem;
   }
 
   /* CLEAN SPACING */
@@ -547,8 +569,8 @@ body {
   animation: revealUp 0.7s ease-out 2.95s both;
 }
 .email-input {
-  background: transparent;
-  border: 3px solid rgba(245,240,232,0.5);
+  background: rgba(245,240,232,0.05);
+  border: 3px solid rgba(245,240,232,0.6);
   border-right: none;
   color: var(--white);
   font-family: 'Space Mono', monospace;
@@ -557,10 +579,15 @@ body {
   width: clamp(200px, 28vw, 300px);
   outline: none;
   letter-spacing: 0.06em;
-  transition: border-color 0.25s;
+  transition: all 0.25s;
+  border-radius: 0;
 }
-.email-input::placeholder { color: rgba(245,240,232,0.28); }
-.email-input:focus { border-color: var(--yellow); }
+.email-input::placeholder { color: rgba(245,240,232,0.5); }
+.email-input:focus { 
+  border-color: var(--yellow); 
+  background: rgba(245,240,232,0.08);
+  box-shadow: 0 0 0 1px var(--yellow);
+}
 .notify-btn {
   background: var(--yellow);
   border: 3px solid var(--yellow);
@@ -837,15 +864,20 @@ body {
   position: relative; z-index: 2; transform: rotate(-0.3deg);
 }
 .cta-input {
-  background: transparent;
-  border: 3px solid rgba(245,240,232,0.4); border-right: none;
+  background: rgba(245,240,232,0.05);
+  border: 3px solid rgba(245,240,232,0.5); border-right: none;
   color: var(--white); font-family: 'Space Mono', monospace;
   font-size: 0.78rem; padding: 16px 22px;
   width: clamp(220px, 30vw, 340px);
-  outline: none; letter-spacing: 0.06em; transition: border-color 0.25s;
+  outline: none; letter-spacing: 0.06em; transition: all 0.25s;
+  border-radius: 0;
 }
-.cta-input::placeholder { color: rgba(245,240,232,0.25); }
-.cta-input:focus { border-color: var(--yellow); }
+.cta-input::placeholder { color: rgba(245,240,232,0.45); }
+.cta-input:focus { 
+  border-color: var(--yellow); 
+  background: rgba(245,240,232,0.08);
+  box-shadow: 0 0 0 1px var(--yellow);
+}
 .cta-btn {
   background: var(--yellow); border: 3px solid var(--yellow);
   color: var(--black); font-family: 'Black Ops One', cursive;
@@ -995,10 +1027,11 @@ footer {
       <span class="cat-tag">&amp; 100+ More</span>
     </div>
 
-    <div class="form-wrap">
-      <input class="email-input" type="email" placeholder="drop your email here" id="hero-email" />
-      <button class="notify-btn" id="hero-btn">Get Early Access</button>
-    </div>
+    <form class="form-wrap" name="hero-early-access" method="POST" data-netlify="true">
+      <input type="hidden" name="form-name" value="hero-early-access">
+      <input class="email-input" type="email" name="email" placeholder="drop your email here" id="hero-email" required />
+      <button type="submit" class="notify-btn" id="hero-btn">Get Early Access</button>
+    </form>
 
     <a class="insta-link" href="https://instagram.com/theshelves.in/" target="_blank" rel="noopener">
       <span class="live-dot"></span>
@@ -1175,8 +1208,11 @@ footer {
     Join thousands on the early access list — exclusive launch deals await.
   </p>
   <div class="cta-form reveal reveal-delay-2">
-    <input class="cta-input" type="email" placeholder="your@email.com" id="cta-email" />
-    <button class="cta-btn" id="cta-btn">Lock My Spot</button>
+    <form class="form-wrap" id="notifyForm" name="early-access" method="POST" data-netlify="true">
+      <input type="hidden" name="form-name" value="early-access">
+      <input type="email" class="email-input" name="email" placeholder="your@email.com" required>
+      <button type="submit" class="notify-btn">NOTIFY ME</button>
+    </form>
   </div>
   <p class="cta-note reveal reveal-delay-3">No spam. Ever. Unsubscribe anytime. We respect your inbox.</p>
 </section>
@@ -1205,11 +1241,12 @@ footer {
 <footer>
   <div class="footer-logo">SHELVES<span>.</span></div>
   <div class="footer-links">
-    <a href="#">About</a>
-    <a href="#">Sell on Shelves</a>
+    <a href="about.html">About</a>
+    <a href="sell.html">Sell on Shelves</a>
     <a href="https://instagram.com/theshelves.in" target="_blank" rel="noopener">Instagram</a>
     <a href="privacy.html">Privacy</a>
-    <a href="#">Contact</a>
+    <a href="contact.html">Contact</a>
+    <a href="donate.html" style="color:rgba(0,255,65,0.6);">Donate</a>
   </div>
   <div class="footer-copy">© 2026 Shelves Pvt. Ltd. All rights reserved.</div>
 </footer>
